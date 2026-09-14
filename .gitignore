@@ -1,0 +1,40 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# ---------- PyInstaller 构建产物 ----------
+build/
+build_tmp/
+dist/
+dist_new/
+*.manifest
+
+# ---------- 运行时生成（本地缓存 / 日志 / 用户配置） ----------
+*.log
+tilecache/
+ui.json
+geocode_cache.json
+
+# ---------- 开发期诊断素材 ----------
+_diag/
+preview_side_panel.png
+_check.js
+
+# ---------- 本地凭据（绝不入库） ----------
+.gh_token
+*.token
+gh_token.txt
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
+nul

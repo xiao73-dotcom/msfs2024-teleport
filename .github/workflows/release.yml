@@ -1,0 +1,110 @@
+name: Build & Release
+
+# 触发方式：
+#   1) 推送 v* 标签（例如 v0.23）—— 自动构建并发布 Release
+#   2) 仓库网页手动触发：Actions -> Build & Release -> Run workflow
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号（如 0.23）；留空则自动读取 strings.py 中的 APP_VERSION'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build EXE and publish Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ver = ''
+          if ("${{ github.ref }}" -like 'refs/tags/v*') {
+            $ver = "${{ github.ref }}" -replace '^refs/tags/v', ''
+          }
+          if ([string]::IsNullOrWhiteSpace($ver)) { $ver = "${{ github.event.inputs.version }}" }
+          if ([string]::IsNullOrWhiteSpace($ver)) {
+            $src = Get-Content -Raw -Path strings.py
+            if ($src -match 'APP_VERSION\s*=\s*"([^"]+)"') { $ver = $Matches[1] }
+          }
+          if ([string]::IsNullOrWhiteSpace($ver)) { $ver = '0.0.0' }
+          "value=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Resolved version: $ver"
+
+      - name: Build single-file EXE
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python build.py --distpath dist
+          if (-not (Test-Path 'dist/MSFSTeleport.exe')) { throw 'Build failed: dist/MSFSTeleport.exe not found' }
+          $f = Get-Item 'dist/MSFSTeleport.exe'
+          Write-Host ("Built {0} ({1:N2} MB)" -f $f.Name, ($f.Length / 1MB))
+
+      - name: Package asset
+        id: pkg
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ver = "${{ steps.ver.outputs.value }}"
+          $dst = "MSFSTeleport-v$ver.exe"
+          Copy-Item 'dist/MSFSTeleport.exe' $dst -Force
+          "path=$dst" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Asset ready: $dst"
+
+      - name: Publish to Releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $ver   = "${{ steps.ver.outputs.value }}"
+          $tag   = "v$ver"
+          $asset = "${{ steps.pkg.outputs.path }}"
+          $title = "MSFS2024 瞬移器 v$ver"
+
+          $nl = [char]10
+          $notes = @(
+            "### MSFS2024 瞬移器 v$ver",
+            "",
+            "由 GitHub Actions 自动构建发布。产物为单文件 EXE，已内嵌 SimConnect.dll，下载即用、无需安装。",
+            "",
+            "**使用前**：请先在 MSFS2024 中进入一次飞行（飞机已载入），再打开本工具。"
+          ) -join $nl
+          Set-Content -Path 'release-notes.md' -Value $notes -Encoding utf8
+
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $tag 已存在，覆盖上传附件..."
+            gh release upload $tag $asset --clobber
+          } else {
+            Write-Host "创建 Release $tag ..."
+            gh release create $tag $asset --title $title --notes-file 'release-notes.md'
+          }
+          if ($LASTEXITCODE -ne 0) { throw "gh release 失败，退出码 $LASTEXITCODE" }
+          Write-Host "发布完成：$tag -> $asset"
