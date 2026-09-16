@@ -40,9 +40,8 @@ Keyboard shortcuts: `Ctrl+Alt+T` teleport to armed target · `Ctrl+Alt+E` resume
 ## Notes
 
 - The release EXE is **not code-signed**. Windows SmartScreen may show "Windows protected your PC" on first launch — click **More info → Run anyway**.
-- Map tiles: Esri (worldwide) and Amap/Tencent (China), cached on disk. An offline satellite basemap (zoom 0–5) is bundled so the world is never blank at low zoom.
-- Geocoding: a built-in offline gazetteer plus online geocoders (Photon, Nominatim, ArcGIS; Amap for China).
-- In mainland China the app uses GCJ-02 coordinates for Chinese map sources so the aircraft lines up with the imagery.
+- Map tiles: Esri (worldwide), cached on disk. An offline satellite basemap (zoom 0–5) is bundled so the world is never blank at low zoom.
+- Geocoding: a built-in offline gazetteer plus online geocoders (Photon, Nominatim, ArcGIS).
 
 ## Build from source
 
