@@ -2,7 +2,7 @@
 
 Relocate your aircraft to **any place or coordinate** in Microsoft Flight Simulator 2024 / 2020. Free flight normally lets you start only from an airport (by ICAO code); FS Relocator removes that limit — enter a flight, then move the plane anywhere you like by place name or latitude/longitude.
 
-The UI is bilingual (Chinese / English) and follows your simulator's language automatically. Fully local, no account, no external calls, no paid APIs.
+Fully local, no account, no external calls, no paid APIs.
 
 ---
 
@@ -19,7 +19,7 @@ Go to the **Releases** page and download the latest `FSRelocator-vX.Y.zip` (reco
 ## How to use
 
 1. Open the tool — it connects to MSFS automatically; the status dot turns green when connected.
-2. **Search** tab: type a place in English or Chinese (e.g. `Eiffel Tower`, `哈尔滨中央大街`), search, then pick a candidate.
+2. **Search** tab: type a place name (e.g. `Eiffel Tower`), search, then pick a candidate.
 3. **Target** tab: enter `latitude, longitude` directly, or fill latitude / longitude / altitude (m) / heading (°) separately.
 4. Click **Go to Location** — the aircraft is teleported to the target.
 
