@@ -1,4 +1,4 @@
-"""MSFS2024 任意地点瞬移工具（本地 EXE + 内嵌 Web 界面）。
+"""FS2024 自由飞行器（本地 EXE + 内嵌 Web 界面）。
 
 运行方式：
     python app.py                       # 语言随系统（中文系统 -> 中文界面）
@@ -20,10 +20,12 @@ import ctypes
 import ctypes.wintypes as wintypes
 import json
 import os
+import sys
 import threading
 import time
 import traceback
 import urllib.request
+import zipfile
 
 import webview
 
@@ -447,6 +449,183 @@ def _tile_uri(raw):
     return "data:%s;base64,%s" % (mime, base64.b64encode(raw).decode("ascii"))
 
 
+# ---------------------------------------------------------------------------
+# 内置离线底图（world_z5_sat.zip）
+# 把 z0~z5 的全球卫星瓦片全部随 EXE 分发：启动那一屏（z5 总览）永远秒开，
+# 平移/突进过程中也总有本地底图兜底 —— 彻底消除"网络慢就出现黑块"。
+# zip 内条目：sat/{z}/{x}_{y}.jpg
+# ---------------------------------------------------------------------------
+_BUNDLE_ZIP_NAME = "world_z5_sat.zip"
+_BUNDLE_MAXZ = 5          # 内置底图覆盖的最大级别（含）
+_BZ_LOCK = threading.Lock()
+_BZ = None                # zipfile.ZipFile | False（不可用）
+_BZ_MEM = {}              # (z,x,y) -> data URI
+
+
+def _pkg_path(name):
+    """数据文件：优先 PyInstaller 解压目录（_MEIPASS），其次 EXE/脚本同目录。"""
+    base = getattr(sys, "_MEIPASS", "") or ""
+    if base:
+        p = os.path.join(base, name)
+        if os.path.isfile(p):
+            return p
+    return os.path.join(_APP_DIR, name)
+
+
+def _bundle_zip():
+    global _BZ
+    if _BZ is not None:
+        return _BZ
+    with _BZ_LOCK:
+        if _BZ is not None:
+            return _BZ
+        p = _pkg_path(_BUNDLE_ZIP_NAME)
+        try:
+            if os.path.isfile(p):
+                _BZ = zipfile.ZipFile(p)
+                logger.info("offline basemap loaded: %s (%d entries)", p, len(_BZ.namelist()))
+            else:
+                logger.warning("offline basemap not found: %s", p)
+                _BZ = False
+        except Exception as e:  # noqa: BLE001
+            logger.warning("offline basemap unreadable (%s): %s", p, e)
+            _BZ = False
+    return _BZ
+
+
+def _bundled_tile_uri(z, x, y):
+    """返回内置底图瓦片的 data URI；没有返回 None。"""
+    if z < 0 or z > _BUNDLE_MAXZ:
+        return None
+    key = (z, x, y)
+    hit = _BZ_MEM.get(key)
+    if hit:
+        return hit
+    zf = _bundle_zip()
+    if not zf:
+        return None
+    try:
+        raw = zf.read("sat/%d/%d_%d.jpg" % (z, x, y))
+    except Exception:  # noqa: BLE001  KeyError / BadZipFile
+        return None
+    uri = _tile_uri(raw)
+    if len(_BZ_MEM) < 900:      # 简单上限，避免长时间运行无界增长
+        _BZ_MEM[key] = uri
+    return uri
+
+
+# ---------------------------------------------------------------------------
+# 自有窗口定位与标题（标题会随界面语言变化，所以匹配不能只认当前语言）
+# ---------------------------------------------------------------------------
+_SELF_HWND_CACHE = {"hwnd": None}
+
+
+def _self_title_keys():
+    """本程序窗口标题可能出现的全部关键字（中/英两种语言 + 历史名）。
+
+    窗口标题会随界面语言切换而改变，所以**不能**只用 `t("app_title")` 去匹配，
+    否则切换语言后"按标题找自己"就会失败（最小化/置顶/热键都会跟着失效）。
+    """
+    keys = set()
+    for name in ("ZH", "EN"):
+        d = getattr(strings, name, None)
+        if isinstance(d, dict) and d.get("app_title"):
+            keys.add(str(d["app_title"]).strip().lower())
+    keys.update({"fs relocator", "fs瞬移者", "fs2024", "msfs-2024", "msfsteleport"})
+    return {k for k in keys if k}
+
+
+def _find_self_hwnd(force=False):
+    """找到本程序自己的主窗口句柄（按 pid 过滤，排除隐藏的 GDI+ 辅助窗口）。
+
+    优先按标题命中；万一标题被改得不认识了，退回"本进程可见且有标题的最大窗口"，
+    并缓存句柄避免每次全量枚举。
+    """
+    try:
+        user32 = ctypes.windll.user32
+    except Exception:  # noqa: BLE001
+        return None
+    cached = _SELF_HWND_CACHE.get("hwnd")
+    if cached and not force:
+        try:
+            if user32.IsWindow(cached):
+                return cached
+        except Exception:  # noqa: BLE001
+            pass
+        _SELF_HWND_CACHE["hwnd"] = None
+
+    try:
+        self_pid = os.getpid()
+        keys = _self_title_keys()
+        best = {"hwnd": None, "area": -1}
+        WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+        buf = ctypes.create_unicode_buffer(512)
+        rect = wintypes.RECT()
+
+        def _each(hwnd, _lp):
+            if not user32.IsWindowVisible(hwnd):
+                return True
+            pid = wintypes.DWORD()
+            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+            if pid.value != self_pid:
+                return True
+            user32.GetWindowTextW(hwnd, buf, 512)
+            low = (buf.value or "").strip().lower()
+            if not low or "gdi+" in low:
+                return True
+            if any(k in low for k in keys):
+                best["hwnd"] = hwnd
+                return False                       # 标题命中即终局
+            user32.GetWindowRect(hwnd, ctypes.byref(rect))
+            area = max(0, rect.right - rect.left) * max(0, rect.bottom - rect.top)
+            if area > best["area"]:
+                best["area"] = area
+                best["hwnd"] = hwnd
+            return True
+
+        user32.EnumWindows(WNDENUMPROC(_each), 0)
+        hwnd = best["hwnd"]
+        if hwnd:
+            _SELF_HWND_CACHE["hwnd"] = hwnd
+        return hwnd
+    except Exception as e:  # noqa: BLE001
+        logger.debug("_find_self_hwnd failed: %s", e)
+        return None
+
+
+def set_window_title(title):
+    """把原生窗口标题改成 title（标题栏 / 任务栏 / Alt+Tab 全都跟着变）。
+
+    pywebview 的窗口标题是**创建时固定**的，页面里的 `<title>` 只影响文档标题，
+    不会动原生标题栏——所以切换语言后必须显式改一次。
+    """
+    if not title:
+        return False
+    ok = False
+    try:
+        if WIN is not None:
+            # 优先 set_title()：它只等 "shown" 事件；而 .title 属性 setter 会等
+            # "loaded" 事件，偏偏 load_html() 会 clear 该事件——重载页面时用属性
+            # setter 有阻塞风险（最多 15 秒）。
+            setter = getattr(WIN, "set_title", None)
+            if callable(setter):
+                setter(title)
+            else:
+                WIN.title = title                  # 老版本 pywebview 的退路
+            ok = True
+    except Exception as e:  # noqa: BLE001
+        logger.debug("set window title via pywebview failed: %s", e)
+    if not ok:                                     # 兜底：直接改原生标题
+        hwnd = _find_self_hwnd()
+        if hwnd:
+            try:
+                ctypes.windll.user32.SetWindowTextW(hwnd, title)
+                ok = True
+            except Exception as e:  # noqa: BLE001
+                logger.debug("SetWindowTextW failed: %s", e)
+    return ok
+
+
 class Api:
     """暴露给前端 JS 的后端接口（pywebview js_api）。"""
 
@@ -467,7 +646,8 @@ class Api:
     def tile(self, arg):
         """下载一张瓦片并以 data URI 返回。
 
-        arg: {z, x, y, src} —— src 默认 amap_street。
+        arg: {z, x, y, src} —— src 默认 amap_street；base=true 表示要"内置离线底图"
+        （z<=5 的卫星瓦片，随 EXE 分发，任何图层都能拿它当低倍率兜底）。
         返回 {"ok":true,"data":"data:image/...;base64,..."} 或 {"ok":false,"err":"..."}
         """
         try:
@@ -485,6 +665,12 @@ class Api:
         n = 1 << z
         if x < 0 or y < 0 or x >= n or y >= n:
             return {"ok": False, "err": "tile out of range"}
+
+        # 内置离线底图（z<=5 卫星）优先：秒出、不依赖网络
+        if z <= _BUNDLE_MAXZ and (src == "esri_sat" or bool(arg.get("base"))):
+            b = _bundled_tile_uri(z, x, y)
+            if b:
+                return {"ok": True, "data": b, "cached": True, "base": True}
 
         key = "%s/%d/%d/%d" % (src, z, x, y)
         with _TILE_LOCK:
@@ -682,11 +868,22 @@ class Api:
 
     # ---- 地名解析 ----
     def geocode(self, query):
+        """完整解析：全部源并行 + 合并排序（最准，约 1~3 秒）。"""
+        return self._geocode(query, fast=False)
+
+    def geocode_fast(self, query):
+        """快速通道：离线词典 + 最快的一个源。通常 1 秒内返回，
+        用来先把候选列表画出来，然后由完整解析结果覆盖。"""
+        return self._geocode(query, fast=True)
+
+    def _geocode(self, query, fast=False):
         q = (query or "").strip()
         if not q:
             return {"ok": False, "msg": t("geocode_empty")}
         try:
-            results = search(q)
+            # 区域自适应：中文界面/中文地名 -> 国内（高德优先）；英文界面 -> 国外（全球源）
+            region = "cn" if strings.LANG == "zh" else "intl"
+            results = search(q, region=region, fast=fast)
             if not results:
                 return {"ok": False, "msg": t("geocode_none")}
             return {"ok": True, "results": results}
@@ -732,35 +929,12 @@ class Api:
             return {"ok": False, "msg": t("unpause_fail", err=e)}
 
     def _self_hwnd(self):
-        """找到本程序自己的主窗口句柄（排除隐藏的 GDI+ 辅助窗口）。"""
-        try:
-            user32 = ctypes.windll.user32
-            self_pid = os.getpid()
-            found = {"hwnd": None}
-            WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
-            buf = ctypes.create_unicode_buffer(256)
-            title_key = t("app_title").lower()
-            common_key = "msfs-2024"
+        """找到本程序自己的主窗口句柄（排除隐藏的 GDI+ 辅助窗口）。
 
-            def _each(hwnd, _lp):
-                if not user32.IsWindowVisible(hwnd):
-                    return True
-                user32.GetWindowTextW(hwnd, buf, 256)
-                title = (buf.value or "").lower()
-                pid = wintypes.DWORD()
-                user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-                if pid.value != self_pid or "gdi+" in title:
-                    return True
-                if common_key in title or title_key in title:
-                    found["hwnd"] = hwnd
-                    return False
-                return True
-
-            user32.EnumWindows(WNDENUMPROC(_each), 0)
-            return found["hwnd"]
-        except Exception as e:  # noqa: BLE001
-            logger.debug("_self_hwnd failed: %s", e)
-            return None
+        标题会随界面语言切换而变，故匹配逻辑集中在 `_find_self_hwnd()`，
+        内部同时认中/英两种标题并带兜底，避免"换语言后认不出自己"。
+        """
+        return _find_self_hwnd()
 
     def _minimize_self(self):
         """瞬移前最小化本窗口，确保 MSFS 真正拿到焦点（不会进入切出暂停）。"""
@@ -1063,7 +1237,7 @@ class Api:
 
     # ---- 彩蛋（点击页脚署名触发） ----
     def set_lang(self, payload=None):
-        """彩蛋 1：点击页脚“肖阳设计” -> 中文 / 英文界面互相切换。
+        """语言切换：点击页脚“中/En”按钮 -> 中文 / 英文界面互相切换。
 
         原地重载界面实现全局语言切换，不重启进程——避开 PyInstaller onefile
         重启导致的临时目录（_MEI）冲突及 SimConnect.dll / .NET 加载失败。
@@ -1082,6 +1256,12 @@ class Api:
             logger.info("language switched to %s (persisted to ui.json)", lang)
         except Exception as e:  # noqa: BLE001
             logger.warning("set_lang persist failed: %s", e)
+        # 原生窗口标题必须显式改：pywebview 的窗口标题是创建时固定的，
+        # 重载页面只会更新文档 <title>，标题栏 / 任务栏不会跟着变。
+        try:
+            set_window_title(t("app_title"))
+        except Exception as e:  # noqa: BLE001
+            logger.warning("sync window title failed: %s", e)
         # 用新语言重新渲染整页并就地重载：窗口与 SimConnect 连接均保持不变
         try:
             win = WIN
@@ -1089,6 +1269,11 @@ class Api:
                 win.load_html(build_html())
         except Exception as e:  # noqa: BLE001
             logger.warning("reload for language failed: %s", e)
+        # 换标题会重建非客户区，个别系统上会重置深色标题栏属性，补染一次
+        try:
+            self.apply_dark_titlebar()
+        except Exception as e:  # noqa: BLE001
+            logger.debug("re-apply dark titlebar failed: %s", e)
         return {"ok": True, "lang": lang}
 
     def open_external(self, payload=None):
@@ -1140,9 +1325,13 @@ HTML_TEMPLATE = r"""
         display:flex;flex-direction:column;}
   /* 子项不压缩；页脚用 margin-top:auto 沉到面板底部（内容超高时随内容滚动） */
   .side>*{flex:0 0 auto;}
+  /* 页脚四项居中紧排（不用 space-evenly：窗口拉宽后会被撑散） */
   .credit{margin-top:auto;padding-top:12px;font-size:10px;line-height:1.5;color:var(--sub);
           display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;text-align:center;}
   .credit .sep{opacity:.4;}
+  .langbtn{cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:1px 7px;
+           color:var(--ink);background:var(--field);transition:background .12s,border-color .12s;}
+  .langbtn:hover{background:var(--hover);border-color:var(--accent);}
   .main{flex:1;min-width:0;display:flex;flex-direction:column;}
   /* draggable splitter between the side panel and the map */
   .splitter{flex:0 0 8px;cursor:col-resize;background:#10151d;transition:background .12s;
@@ -1198,9 +1387,6 @@ HTML_TEMPLATE = r"""
   .msg{margin-top:10px;font-size:13px;min-height:18px;}
   .msg.ok{color:var(--ok);} .msg.err{color:var(--err);}
   .hint{font-size:11px;color:var(--sub);}
-  .diag{background:#10161f;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;font-size:11px;}
-  .diag h3{margin:0 0 6px;font-size:12px;}
-  .diag pre{margin:0;white-space:pre-wrap;word-break:break-all;color:var(--sub);max-height:180px;overflow:auto;}
   .row-btns{display:flex;gap:6px;align-items:center;}
   .sec{margin-top:12px;padding:12px 0 6px;border-top:2px solid var(--line);}
   .sec.first{margin-top:0;padding-top:0;border-top:0;}
@@ -1277,7 +1463,7 @@ HTML_TEMPLATE = r"""
     <div class="sec first">
       <div class="cap">{{cap_search}}</div>
       <div class="row">
-        <input id="q" placeholder="{{ph_place}}" onkeydown="if(event.key==='Enter')geocode()">
+        <input id="q" placeholder="{{ph_place}}" onkeydown="if(event.key==='Enter')geocode()" oninput="onQueryInput()">
         <button onclick="geocode()">{{btn_search}}</button>
       </div>
       <div class="list" id="cands"></div>
@@ -1337,18 +1523,16 @@ HTML_TEMPLATE = r"""
       </div>
     </div>
 
-    <!-- section: messages / diagnostics -->
+    <!-- section: messages（只保留一行文字提示；故障时显示红色可操作建议） -->
     <div class="sec">
       <div class="msg" id="msg"></div>
-      <div class="diag" id="diag" style="display:none">
-        <h3>{{diag_title}}</h3>
-        <pre id="diagBody"></pre>
-      </div>
     </div>
 
-    <!-- footer: credits / version -->
+    <!-- footer: language toggle / credits / version -->
     <div class="credit">
-      <span class="cd" id="cdDesign" style="cursor:pointer" onclick="eggLang()">{{credit_design}}</span>
+      <span class="langbtn" id="langBtn" title="{{hint_lang}}" onclick="toggleLang()">{{lang_label}}</span>
+      <span class="sep">·</span>
+      <span class="cd" id="cdDesign" style="cursor:pointer" onclick="openMail()">{{credit_design}}</span>
       <span class="sep">·</span>
       <span id="cdMade" style="cursor:pointer" onclick="eggWb()">{{credit_made}}</span>
       <span class="sep">·</span>
@@ -1364,8 +1548,8 @@ HTML_TEMPLATE = r"""
     <div class="mapbar">
       <span class="segbar">
         <span class="lbl">{{layer_lbl}}</span>
-        <span class="seg on" id="segStreet" onclick="setLayer('street')">{{layer_street}}</span>
-        <span class="seg" id="segSat" onclick="setLayer('sat')">{{layer_sat}}</span>
+        <span class="seg" id="segStreet" onclick="setLayer('street')">{{layer_street}}</span>
+        <span class="seg on" id="segSat" onclick="setLayer('sat')">{{layer_sat}}</span>
         <span class="upbtn" id="btnUp" onclick="toggleUpMode()" title="{{hint_upmode}}"><span class="upico" id="upIco">N</span><span id="upTxt">{{opt_northup}}</span></span>
       </span>
       <span class="row-btns" style="margin-left:auto">
@@ -1431,10 +1615,16 @@ function call(fn,arg){
   if(arg===undefined) return a[fn]();
   return a[fn](arg);
 }
-function eggLang(){
-  // 彩蛋 1：点击“肖阳设计” -> 中文 / 英文界面互相切换（原地重载，不重启进程）
+function toggleLang(){
+  // “中/En”按钮：点击切换中英文界面（原位重载，不重启进程）
   const cur=(document.documentElement.lang||'').toLowerCase().startsWith('en')?'en':'zh';
   if(isApiReady()) safe('set_lang',{lang: cur==='en' ? 'zh' : 'en'});
+}
+function openMail(){
+  // 点击页脚署名（“JerryXiao设计”） -> 用系统默认邮件程序给 jerryxiao@msn.com 写信（主题=当前语言软件名）
+  const subj = encodeURIComponent(TXT.app_title || 'FS Relocator');
+  const url = 'mailto:jerryxiao@msn.com?subject=' + subj;
+  if(isApiReady()) safe('open_external',{url:url});
 }
 function eggWb(){
   // 彩蛋 2：点击“WorkBuddy 制作” -> 系统默认浏览器打开邀请链接（视觉保持普通文字）
@@ -1447,12 +1637,34 @@ function safe(fn,arg){
   });
 }
 
-function setMsg(t,kind){ // 只显示错误信息，成功提示一律不再展示（保持界面干净）
-  if(kind!=='err'||!t) return;
-  const m=document.getElementById('msg'); m.textContent=t; m.className='msg err';
+// 消息位：只显示错误/警告（红色），成功提示一律不展示（保持界面干净）。
+// ⚠ 关键：**非错误调用必须清空旧提示**——否则上一次的红字会一直留在面板上
+// （旧实现遇到 kind!=='err' 直接 return，连 setMsg('','') 都清不掉；用户 2026-09-16 反馈的残留问题）。
+let _msgTimer=null;
+function clearMsg(){
+  if(_msgTimer){ clearTimeout(_msgTimer); _msgTimer=null; }
+  const m=document.getElementById('msg');
+  if(!m) return;
+  if(m.textContent) m.textContent='';
+  if(m.className!=='msg') m.className='msg';
 }
-function setStat(on,txt){document.getElementById('dot').className='dot'+(on?' on':'');
-  document.getElementById('statTxt').textContent=txt||(on?TXT.connected:TXT.not_connected);}
+function setMsg(t,kind,ttl){
+  // ttl(ms)：提示性文字自动消失的时长；真正的故障不传 ttl，保留到状态变化为止
+  if(_msgTimer){ clearTimeout(_msgTimer); _msgTimer=null; }
+  if(kind==='err' && t){
+    const m=document.getElementById('msg'); m.textContent=t; m.className='msg err';
+    if(ttl>0) _msgTimer=setTimeout(clearMsg, ttl);
+    return;
+  }
+  clearMsg();
+}
+function setStat(on,txt){
+  const dot=document.getElementById('dot');
+  const was=dot.className.indexOf('on')>=0;
+  dot.className='dot'+(on?' on':'');
+  document.getElementById('statTxt').textContent=txt||(on?TXT.connected:TXT.not_connected);
+  if(on && !was) clearMsg();   // 刚连上：把“未连接”阶段留下的红色提示清掉
+}
 
 // ---------------- sidebar splitter ----------------
 const SIDE_MIN=260, SIDE_MAX=560;
@@ -1479,22 +1691,35 @@ window.addEventListener('mouseup',()=>{
 
 // ---------------- map engine ----------------
 const cv=document.getElementById('map'), ctx=cv.getContext('2d');
-let view={lon:105,lat:32,z:4};
+// 启动即显示 z5 全球卫星总览：z5 卫星瓦片全球仅 1024 张，任何网速都能秒开；
+// 玩家选点后再从这一级"突进"到目标细节级（见 selectLocation）。
+let view={lon:105,lat:32,z:5};
 let target=null, acft=null, favs=[];
 let followOn=false;                 // “跟随飞机”开关
+let _bootLocate=true;               // 启动后拿到第一个飞机位置时，强制把镜头定位到飞机（只做一次）
 let autoZoom=false;                 // “缩放随高度”开关（手动缩放会自动退出）
 let favAsk=null;                    // 收藏点预览确认状态（5 秒倒计时）
 let lastAcCat=null;                 // 上次识别到的机型，机型变化时才自动切换空速档
-let layer='street';                 // 'street' | 'sat' - both online tiles
+let layer='sat';                    // 'street' | 'sat' - 启动默认卫星图（z5 总览）
 let curSrc='amap_street';           // resolved from layer + view position
 let curGcj=false;                   // true when curSrc is GCJ-02 (Amap)
 let upMode='north';                 // 'north'（北向上，默认）| 'heading'（机头朝上）
-let mapRot=0;                       // 地图内容旋转角（弧度，顺时针为正）；北向上恒为 0
+let mapRot=0;                       // 目标旋转角（弧度，顺时针为正）；北向上恒为 0
+let mapRotDisp=0;                   // 实际渲染用旋转角（切换朝向时由动画插值）
+let mapTiltDisp=0;                  // 实际渲染用倾斜角（弧度，0=俯视；选点后 45°）
+const TILT_MAX=45*Math.PI/180;      // 倾斜上限：地图平面绕屏幕水平轴转 45°
+const ORBIT_SPEED=4.5*Math.PI/180;  // 环绕速度（弧度/秒，逆时针），约 80 秒一圈
+let _animRot=null;                  // 朝向/倾斜过渡动画状态
+let _orbit=null;                    // 环绕状态（选点定位结束后自动开始）
+let _uiRaf=0;                       // 共用动画循环句柄
+let _panAnim=null;                  // 镜头平滑平移状态
+let _tiltGoal=0;                    // 倾斜目标：0 或 TILT_MAX
 let DPR=1, tileToken=0;
 let CV_W=1, CV_H=1;                 // logical canvas size (matches buffer/DPR)
 const tileStore=new Map();          // key -> {img|null, busy:bool}
 let tileStat={load:0, fail:0};
 const MAXZ={street:18, sat:19};
+const BASE_MAXZ=5;                  // 内置离线底图（随 EXE 分发的 z0~z5 卫星瓦片）
 
 // ---- WGS-84 <-> GCJ-02 (Amap tiles are offset by a few hundred metres) ----
 const _PI=Math.PI, _A=6378245.0, _EE=0.00669342162296594323;
@@ -1551,37 +1776,58 @@ function H(){ return CV_H||cv.clientHeight||1; }
 function worldPx(){ return 256*Math.pow(2,view.z); }
 function centerDisp(){ return toDisp(view.lon,view.lat); }
 
-// ---- 旋转：mapRot 为地图内容绕屏幕中心顺时针旋转的角度（弧度） ----
-// 北向上时 mapRot=0；机头朝上时 mapRot = -heading，使航向方向始终指向屏幕上方。
-function rotXY(dx,dy){                       // 施加 mapRot
-  if(!mapRot) return [dx,dy];
-  const c=Math.cos(mapRot), s=Math.sin(mapRot);
-  return [dx*c-dy*s, dx*s+dy*c];
+// ---- 视图变换：地图内容 -> 屏幕 ----
+// 角度 mapRotDisp：地图内容绕屏幕中心顺时针旋转（北向上 0；机头朝上 -heading）
+// 倾斜 mapTiltDisp：地图平面绕屏幕水平轴倾斜，纵向压缩 cos(φ)，模拟斜视视角
+// 合成矩阵 M = S(1,cosφ)·R(θ) 是正交（仿射）变换，严格可逆 ——
+// 因此鼠标取经纬度、瓦片网格对齐、图标定位全部精确，不存在透视带来的非线性偏移。
+function curM(){                       // ctx.transform 参数 (a,b,c,d)
+  const c=Math.cos(mapRotDisp), s=Math.sin(mapRotDisp), k=Math.cos(mapTiltDisp);
+  return [c, s*k, -s, c*k];
 }
-function unrotXY(x,y){                       // 撤销 mapRot
-  if(!mapRot) return [x,y];
-  const c=Math.cos(mapRot), s=Math.sin(mapRot);
-  return [x*c+y*s, -x*s+y*c];
+function applyM(dx,dy){                // 施加 M
+  if(!mapRotDisp && !mapTiltDisp) return [dx,dy];
+  const c=Math.cos(mapRotDisp), s=Math.sin(mapRotDisp), k=Math.cos(mapTiltDisp);
+  return [dx*c-dy*s, (dx*s+dy*c)*k];
 }
-function projRaw(lon,lat){                   // 相对屏幕中心、未旋转的像素偏移
+function unapplyM(x,y){                // 撤销 M
+  if(!mapRotDisp && !mapTiltDisp) return [x,y];
+  const c=Math.cos(mapRotDisp), s=Math.sin(mapRotDisp);
+  const k=Math.cos(mapTiltDisp)||1;
+  return [x*c+y*s/k, -x*s+y*c/k];
+}
+function projRaw(lon,lat){                   // 相对屏幕中心、未变换的像素偏移
   const d=toDisp(lon,lat), c=centerDisp(), wpx=worldPx();
   return [ (mx(d[0])-mx(c[0]))*wpx, (my(d[1])-my(c[1]))*wpx ];
 }
 function proj(lon,lat){
-  const r=projRaw(lon,lat), p=rotXY(r[0],r[1]);
+  const r=projRaw(lon,lat), p=applyM(r[0],r[1]);
   return [p[0]+W()/2, p[1]+H()/2];
 }
 function unproj(x,y){
-  const a=unrotXY(x-W()/2, y-H()/2);
+  const a=unapplyM(x-W()/2, y-H()/2);
   const c=centerDisp(), wpx=worldPx();
   const lo=mxInv( mx(c[0]) + a[0]/wpx );
   const la=myInv( my(c[1]) + a[1]/wpx );
   return fromDisp(lo,la);   // -> [lon, lat] in WGS-84
 }
-// 视口覆盖半径（世界像素）：旋转后需要用半对角线，否则四角会露白；
-// 未旋转时仍用矩形半宽/半高，避免多请求一倍瓦片。
-function sweepRX(){ return mapRot ? Math.hypot(W(),H())/2 : W()/2; }
-function sweepRY(){ return mapRot ? Math.hypot(W(),H())/2 : H()/2; }
+// 视口覆盖半径（世界像素）：旋转后要用半对角线，否则四角会露白；
+// 倾斜后纵向可见范围放大 1/cosφ，半径须按 R=√((W/2)²+(H/2)²/cos²φ) 取，才能保证四角全覆盖。
+// 未旋转未倾斜时仍用矩形半宽/半高，避免多请求瓦片。
+function sweepRad(){
+  const k=Math.cos(mapTiltDisp);
+  const kk=k>0.25?k:0.25;
+  const hw=W()/2, hh=H()/2;
+  return Math.sqrt(hw*hw + hh*hh/(kk*kk));
+}
+function sweepRX(){
+  if(!mapRotDisp && !mapTiltDisp) return W()/2;
+  return sweepRad();
+}
+function sweepRY(){
+  if(!mapRotDisp && !mapTiltDisp) return H()/2;
+  return sweepRad();
+}
 function syncCanvasSize(){
   const w=cv.clientWidth, h=cv.clientHeight;
   if(!w||!h) return false;
@@ -1701,6 +1947,37 @@ function refreshTiles(immediate){
   if(immediate) refreshTilesNow();
   else _tileTimer=setTimeout(()=>{ _tileTimer=null; refreshTilesNow(); }, 160);
 }
+// ---- 内置离线底图（z0~z5 卫星，随 EXE 分发） ----
+// 低倍率下永远有一张本地卫星图可铺底：网络再慢也不会出现黑块。
+// 存进 tileStore 的 'base/...' 键，与图层无关（街道图也拿它当底）。
+let _baseBusy=0;
+const _BASE_MAX_INFLIGHT=6;
+function _baseEnsure(bk,z,tx,ty){
+  if(tileStore.has(bk)) return;                  // 已请求过（含失败占位），不重复轰炸
+  if(_baseBusy>=_BASE_MAX_INFLIGHT) return;
+  _baseBusy++;
+  tileStore.set(bk,{img:null,busy:true});
+  Promise.resolve(call('tile',{z:z,x:tx,y:ty,base:true})).then(r=>{
+    _baseBusy--;
+    if(r&&r.ok&&r.data){
+      const im=new Image();
+      im.onload=()=>{ tileStore.set(bk,{img:im,busy:false}); scheduleDraw(); };
+      im.onerror=()=>{ tileStore.set(bk,{img:null,busy:false}); };
+      im.src=r.data;
+    } else { tileStore.set(bk,{img:null,busy:false}); }
+  }).catch(()=>{ _baseBusy--; tileStore.set(bk,{img:null,busy:false}); });
+}
+// 取某一级祖先瓦片的图像：z<=BASE_MAXZ 时优先用本地底图，其次才用同源缓存
+function ancestorImg(z,tx,ty){
+  if(z<=BASE_MAXZ){
+    const bk='base/'+z+'/'+tx+'/'+ty;
+    const b=tileStore.get(bk);
+    if(b&&b.img) return b.img;
+    if(!b) _baseEnsure(bk,z,tx,ty);
+  }
+  const rec=tileStore.get(tileKey(z,tx,ty));
+  return (rec&&rec.img)?rec.img:null;
+}
 function drawTiles(){
   const c=toDisp(view.lon,view.lat), wpx=worldPx();
   const cx=mx(c[0])*wpx, cy=my(c[1])*wpx;
@@ -1713,24 +1990,39 @@ function drawTiles(){
   const tx0=Math.floor((cx-rx)/256), tx1=Math.ceil((cx+rx)/256)-1;
   const ty0=Math.floor((cy-ry)/256), ty1=Math.ceil((cy+ry)/256)-1;
   const n=1<<view.z;
-  // 旋转（机头朝上）：整体绕屏幕中心旋转。瓦片仍按未旋转的网格计算，
-  // 坐标变换交给 canvas，避免逐瓦片做投影运算。
+  // 旋转（机头朝上）/ 倾斜（选点后 45°）：整体绕屏幕中心施加正交变换。
+  // 瓦片仍按未变换的网格计算，坐标变换交给 canvas，避免逐瓦片做投影运算。
   ctx.save();
-  if(mapRot){ ctx.translate(W_/2,H_/2); ctx.rotate(mapRot); ctx.translate(-W_/2,-H_/2); }
-  // Draw zoom tiles first, then coarser ancestors underneath as background fill.
-  for(let dz=2; dz>=0; dz--){
+  if(mapRotDisp||mapTiltDisp){
+    const m=curM();
+    ctx.translate(W_/2,H_/2);
+    ctx.transform(m[0],m[1],m[2],m[3],0,0);
+    ctx.translate(-W_/2,-H_/2);
+  }
+  // 由粗到细铺底：先从最浅的祖先层（低级别、覆盖整屏）开始，逐级向下叠到当前级别，
+  // 细节层最后画、盖在最上面。这样即使当前级别瓦片还在下载（网速慢），也总有一张
+  // 已缓存的浅层图放大兜底 —— 这是"选点突进"不黑屏的关键。
+  const vx0=W_/2-rx, vy0=H_/2-ry, vx1=W_/2+rx, vy1=H_/2+ry;   // 视口（旋转时用半对角线）
+  for(let dz=view.z-1; dz>=0; dz--){
     const z=view.z-dz;
     if(z<1) continue;
     const nn=1<<z, sc=Math.pow(2,dz);
     const nx0=Math.max(0,Math.floor(tx0/sc)), nx1=Math.min(nn-1,Math.floor(tx1/sc));
     const ny0=Math.max(0,Math.floor(ty0/sc)), ny1=Math.min(nn-1,Math.floor(ty1/sc));
+    const size=256*sc;
     for(let ty=ny0;ty<=ny1;ty++){
       for(let tx=nx0;tx<=nx1;tx++){
-        const rec=tileStore.get(tileKey(z,tx,ty));
-        if(!rec||!rec.img) continue;
-        const size=256*sc;
+        const img=ancestorImg(z,tx,ty);
+        if(!img) continue;
         const px=(tx*size)-X0, py=(ty*size)-Y0;
-        ctx.drawImage(rec.img, px, py, size, size);
+        // 只画落在视口内的部分：极浅层（如 z1）放大到 z16 时整张贴图会达上千万像素，
+        // 裁剪后开销与其他层级一致，避免拖慢动画。
+        const sx=Math.max(0, vx0-px), sy=Math.max(0, vy0-py);
+        const ex=Math.min(size, vx1-px), ey=Math.min(size, vy1-py);
+        const sw=ex-sx, sh=ey-sy;
+        if(sw<=0||sh<=0) continue;
+        const k=256/size;
+        ctx.drawImage(img, sx*k, sy*k, sw*k, sh*k, px+sx, py+sy, sw, sh);
       }
     }
   }
@@ -1780,8 +2072,16 @@ function drawMap(){
   if(acft){
     const p=proj(acft.lon,acft.lat);
     ctx.save(); ctx.translate(p[0],p[1]);
-    // 机头朝上模式下地图已整体旋转，图标自身不再旋转（组合后机头恒指屏幕上方）
-    ctx.rotate(upMode==='heading' ? 0 : (acft.heading||0)*Math.PI/180);
+    // 机头指向「地图空间中航向方向」在当前视图变换下的屏幕方向 —— 图标与地图严格联动：
+    //   · 不用 upMode 判断（切朝向的 1.2~1.5s 里地图还在缓转，图标会瞬跳、看着与地图脱节）
+    //   · 不能忽略倾斜（45° 时纵向压缩 0.71，屏幕角度会比地图上的实际指向偏出最多约 10°）
+    //   · 环绕/倾斜动画期间 mapRotDisp/mapTiltDisp 每帧在变，这里跟着算，图标自然随地图转
+    // 北向上·无倾斜·航向 h 时等价于 rotate(h)；机头朝上稳态等价于 rotate(0) —— 与旧行为一致。
+    {
+      const hr=(acft.heading||0)*Math.PI/180;
+      const d=applyM(Math.sin(hr), -Math.cos(hr));
+      ctx.rotate(Math.atan2(d[0], -d[1]));
+    }
     ctx.beginPath();
     ctx.moveTo(0,-14);                              // 机头
     ctx.bezierCurveTo(1.9,-12.8, 2.2,-10, 2.2,-6);  // 前机身右缘
@@ -1813,15 +2113,18 @@ function drawMap(){
   }
   drawCompass();
   const lg=document.getElementById('legend');
-  lg.textContent = 'z'+view.z+' · '+TXT['layer_'+layer];
+  lg.textContent = 'z'+view.z+' · '+TXT['layer_'+layer]+(_legendNote ? ' · '+_legendNote : '');
 }
 
 // ---- 方位罗盘（地图左上角，半透明；机头朝上时随地图同步转动） ----
 function drawCompass(){
   const cx=54, cy=54, R=34;
-  const a=mapRot;                       // 北方向在屏幕上的角度（顺时针）
-  const ux=Math.sin(a), uy=-Math.cos(a); // 指北单位向量
-  const px_=Math.cos(a), py_=Math.sin(a);// 垂直方向单位向量
+  // 指北向量 = 地图中的北(0,-1) 经当前视图变换后的方向（倾斜会让它略微偏转）
+  const c0=Math.cos(mapRotDisp), s0=Math.sin(mapRotDisp);
+  let ux=s0, uy=-c0*Math.cos(mapTiltDisp);
+  const n0=Math.hypot(ux,uy)||1; ux/=n0; uy/=n0;
+  const px_=-uy, py_=ux;                 // 垂直方向单位向量
+  const a=Math.atan2(ux,-uy);            // 北方向在屏幕上的角度（顺时针）
   ctx.save();
   // 半透明底盘 + 外圈
   ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283);
@@ -1868,7 +2171,7 @@ function scheduleDraw(){
   pendingDraw=true;
   requestAnimationFrame(()=>{ pendingDraw=false; drawMap(); });
 }
-cv.addEventListener('mousedown',e=>{drag={x:e.offsetX,y:e.offsetY,lon:view.lon,lat:view.lat,moved:0,tok:tileToken};});
+cv.addEventListener('mousedown',e=>{_stopAnim(); orbitStop(true); drag={x:e.offsetX,y:e.offsetY,lon:view.lon,lat:view.lat,moved:0,tok:tileToken};});
 cv.addEventListener('mousemove',e=>{
   if(!drag) return;
   const wpx=worldPx(), dx=e.offsetX-drag.x, dy=e.offsetY-drag.y;
@@ -1931,15 +2234,19 @@ function zoomForAlt(altFt){
 async function setAutoZoom(on){
   autoZoom=!!on;
   const el=document.getElementById('chkAutoZoom'); if(el) el.checked=autoZoom;
+  clearMsg();   // 开关一拨就清掉上一条提示（例如“已手动缩放，退出高度联动”）
   if(!isApiReady()) return;
-  await safe('set_auto_zoom',{on:autoZoom});
+  const r=await safe('set_auto_zoom',{on:autoZoom});
+  if(r && !r.ok) setMsg(TXT.js_call_error + ' set_auto_zoom','err');
 }
 function zoomAt(dz, anchorLL, anchorPx){
+  _stopAnim();
+  orbitStop(true);
   const nz=Math.max(2,Math.min(MAXZ[layer]||18, view.z+dz));
   if(nz===view.z) return;
   view.z=nz;
   // 手动缩放（+/−/滚轮/双击）即退出高度联动，避免两个“意志”打架
-  if(autoZoom){ setAutoZoom(false); setMsg(tr('autozoom_off'),'err'); }
+  if(autoZoom){ setAutoZoom(false); setMsg(tr('autozoom_off'),'err',8000); }
   if(anchorLL&&anchorPx){
     // keep the geo point under the cursor stationary
     for(let i=0;i<2;i++){
@@ -1964,7 +2271,156 @@ function setTarget(lat,lon){
   if(p[0]<0||p[0]>W()||p[1]<0||p[1]>H()){ view.lon=lon; view.lat=lat; tileToken++; }
   drawMap(); refreshTiles();
 }
+
+// ---------- 选点定位：卫星图层 + 北向上 + "先总览平移，再突进" ----------
+// 为什么这样做：z16 卫星瓦片体积大，网速慢时直接飞过去会一路黑屏。
+// 改为三阶段，全程都有已缓存的浅层图放大兜底，不会黑屏：
+//   阶段1 pan  ：在 z5 全球总览上把镜头平移到目标点（z5 全球仅 1024 张瓦片，秒开）
+//   阶段2 wait ：等目标区域的 z16 瓦片下好（阶段1 已在并行预热），最多等 SEL_WAIT_MS
+//   阶段3 zoom ：从 z5 平滑突进到 z16（此时瓦片已在缓存，放大过程连续）
+// 全程约 4~6 秒 —— 与 MSFS 自由飞行选点后加载地景的节奏相当。
+const SEL_LEVEL=16;                        // 目标细节级别
+const SEL_OVERVIEW=5;                      // 总览级别
+const SEL_MID=10;                          // 中间过渡级别（提前预热，突进时更清晰）
+const SEL_PAN_MIN=900, SEL_PAN_MAX=2100;   // 平移动画时长（按距离自适应，毫秒）
+const SEL_WAIT_MS=2600;                    // 等瓦片的上限
+const SEL_ZOOM_MS=2600;                    // 突进时长
+let _selLat=null, _selLon=null;            // 上一次选中的地点
+let _anim=null;                            // 进行中的相机动画状态
+let _legendNote='';                        // 地图左下角附加提示（移动中/载入目标区域…）
+let _warmQ=[], _warmBusy=0;
+const _WARM_MAX=4;                         // 预热并发上限（别把有限带宽全占死）
+
+function _stopAnim(){
+  if(_anim){ if(_anim.raf) cancelAnimationFrame(_anim.raf); _anim=null; }
+  if(_legendNote){ _legendNote=''; scheduleDraw(); }
+}
+function _setViewZ(z){
+  const nz=Math.max(2, Math.min(MAXZ[layer]||18, Math.round(z)));
+  if(nz!==view.z){ view.z=nz; tileToken++; return true; }
+  return false;
+}
+// 目标点周围 z 级瓦片就绪度 -> [已就绪, 总数]（决定"可以突进了吗"）
+function _readyAt(z,lon,lat,rad){
+  const d=toDisp(lon,lat), n=1<<z;
+  const cx=Math.floor(mx(d[0])*n), cy=Math.floor(my(d[1])*n);
+  let ok=0, total=0;
+  for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){
+    const tx=cx+dx, ty=cy+dy;
+    if(tx<0||ty<0||tx>=n||ty>=n) continue;
+    total++;
+    const rec=tileStore.get(tileKey(z,tx,ty));
+    if(rec && rec.img) ok++;
+  }
+  return [ok,total];
+}
+// 预热队列：按"中心 -> 外圈"顺序后台下载，与平移动画并行跑
+function _warmPump(){
+  while(_warmBusy<_WARM_MAX && _warmQ.length){
+    const t=_warmQ.shift(), key=t[0], z=t[1], tx=t[2], ty=t[3];
+    if(tileStore.has(key)) continue;
+    _warmBusy++;
+    tileStore.set(key,{img:null,busy:true});
+    Promise.resolve(call('tile',{z:z,x:tx,y:ty,src:curSrc})).then(r=>{
+      _warmBusy--;
+      if(r&&r.ok&&r.data){
+        const im=new Image();
+        im.onload=()=>{ tileStore.set(key,{img:im,busy:false}); scheduleDraw(); };
+        im.onerror=()=>{ tileStore.delete(key); };
+        im.src=r.data;
+      } else { tileStore.delete(key); }
+      _warmPump();
+    }).catch(()=>{ _warmBusy--; tileStore.delete(key); _warmPump(); });
+  }
+}
+function _warmArea(z,lon,lat,rad){
+  const d=toDisp(lon,lat), n=1<<z;
+  const cx=Math.floor(mx(d[0])*n), cy=Math.floor(my(d[1])*n);
+  for(let r=0;r<=rad;r++){
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      if(r>0 && Math.max(Math.abs(dx),Math.abs(dy))!==r) continue;   // 只取当前这一圈
+      const tx=cx+dx, ty=cy+dy;
+      if(tx<0||ty<0||tx>=n||ty>=n) continue;
+      const key=curSrc+'/'+z+'/'+tx+'/'+ty;
+      if(!tileStore.has(key)) _warmQ.push([key,z,tx,ty]);
+    }
+  }
+  _warmPump();
+}
+function _animStep(){
+  if(!_anim) return;
+  const a=_anim, now=performance.now();
+  if(a.phase==='pan'){
+    let t=(now-a.start)/a.panMs; if(t>1) t=1;
+    const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;                 // easeInOutQuad
+    let dl=a.eLon-a.sLon; if(dl>180) dl-=360; if(dl<-180) dl+=360;    // 跨 180 度走最短路径
+    view.lon=a.sLon+dl*e; view.lat=a.sLat+(a.eLat-a.sLat)*e;
+    clampView();
+    _legendNote=tr('sel_moving');
+    scheduleDraw();
+    if(!a._last || now-a._last>120){ a._last=now; refreshTiles(true); }  // 平移途中也要补瓦片
+    if(t<1){ a.raf=requestAnimationFrame(_animStep); return; }
+    a.phase='wait'; a.start=now;
+    _animStep(); return;
+  }
+  if(a.phase==='wait'){
+    // 等目标区域 z16 下好；中心 3x3 够用就走，最多等 SEL_WAIT_MS（慢网也不会卡死）
+    const rd=_readyAt(SEL_LEVEL,a.eLon,a.eLat,1);
+    if(rd[0]>=Math.min(rd[1],7) || now-a.start>=SEL_WAIT_MS){
+      a.phase='zoom'; a.start=now; a.sZ=view.z;
+      _animStep(); return;
+    }
+    _legendNote=tr('sel_loading')+' '+rd[0]+'/'+rd[1];
+    scheduleDraw();
+    a.raf=requestAnimationFrame(_animStep); return;
+  }
+  let t=(now-a.start)/SEL_ZOOM_MS; if(t>1) t=1;
+  const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+  view.lon=a.eLon; view.lat=a.eLat;
+  clampView();
+  _setViewZ(a.sZ + (SEL_LEVEL-a.sZ)*e);
+  _legendNote='';
+  scheduleDraw();
+  if(!a._last || now-a._last>110){ a._last=now; refreshTiles(true); }
+  if(t<1){ a.raf=requestAnimationFrame(_animStep); }
+  else { _anim=null; refreshTiles(true); schedulePrefetch(); orbitStart(); }   // 落位后进入倾斜环绕展示
+}
+// 玩家点选某个地点后的统一入口：search / 收藏 选择都走这里
+function selectLocation(lat,lon,name){
+  if(typeof lat!=='number'||typeof lon!=='number'||isNaN(lat)||isNaN(lon)) return;
+  // 1) 强制卫星图层 + 北向上（无论当前是何种图层/朝向）
+  setLayer('sat'); setNorthUp();
+  // 2) 取消"跟随飞机"，否则位置轮询会把镜头抢回飞机
+  if(followOn){
+    const el=document.getElementById('chkFollow');
+    if(el) el.checked=false;
+    setFollow(false);
+  }
+  // 3) 目标十字线 + 经纬度框
+  target=[lon,lat];
+  const la=document.getElementById('lat'), lo=document.getElementById('lon');
+  if(la) la.value=lat.toFixed(6);
+  if(lo) lo.value=lon.toFixed(6);
+  const mc=document.getElementById('mapCoord');
+  if(mc) mc.textContent=lat.toFixed(5)+', '+lon.toFixed(5);
+  // 4) 相机飞行：先退到 z5 总览（在高倍率上平移必然黑屏），平移途中并行预热目标瓦片，
+  //    下好后再突进到位。这一步彻底解决"慢网下选点一片黑"的问题。
+  _selLat=lat; _selLon=lon;
+  _stopAnim();
+  orbitStop(true);                            // 上一次的环绕立即收掉，飞行期间保持正视角
+  const sLon=view.lon, sLat=view.lat;
+  if(view.z>SEL_OVERVIEW) _setViewZ(SEL_OVERVIEW);
+  clampView(); drawMap(); refreshTiles(true);
+  _warmArea(SEL_LEVEL,lon,lat,2);            // 目标中心 5x5=25 张，中心优先
+  _warmArea(SEL_MID,  lon,lat,1);            // 过渡层 3x3，突进过程更清晰
+  const dd=Math.hypot(lon-sLon, lat-sLat);   // 越远平移越久，但有上下限
+  const panMs=Math.round(SEL_PAN_MIN+(SEL_PAN_MAX-SEL_PAN_MIN)*Math.min(1,dd/150));
+  _anim={ raf:0, phase:'pan', start:performance.now(), panMs:panMs,
+          sLon:sLon, sLat:sLat, sZ:view.z, eLon:lon, eLat:lat, _last:0 };
+  _anim.raf=requestAnimationFrame(_animStep);
+}
 function setLayer(l){
+  orbitStop(false);
   layer=l; tileToken++; tileStat={load:0,fail:0};
   ['Street','Sat'].forEach(k=>{
     const el=document.getElementById('seg'+k);
@@ -1981,34 +2437,128 @@ function setLayer(l){
 }
 function locateAircraft(){
   if(!acft){setMsg(TXT.map_no_fix,'err');return;}
+  clearMsg();          // 有定位了就清掉上一次“暂无飞机位置”
+  _stopAnim();
+  orbitStop(false);
   view.lon=acft.lon; view.lat=acft.lat;
   view.z=Math.max(view.z, layer==='street'?12:10);
   tileToken++; drawMap(); refreshTiles();
 }
-function flyTo(lat,lon,hdg){
+// 平滑（dur>0）或瞬时（dur 省略）把镜头移到指定位置
+function flyTo(lat,lon,hdg,dur){
   acft={lat:lat,lon:lon,heading:hdg||0};
-  view.lon=lon; view.lat=lat;
-  tileToken++; drawMap(); refreshTiles();
+  if(dur>0){
+    _panAnim={start:performance.now(), dur:dur, sLon:view.lon, sLat:view.lat, eLon:lon, eLat:lat};
+    uiKick();                                   // 交给共用动画循环（uiTick）驱动
+  } else {
+    _panAnim=null;
+    view.lon=lon; view.lat=lat;
+  }
+  tileToken++; refreshTiles();
   schedulePrefetch();
+  scheduleDraw();
   const el=document.getElementById('acLine');
   if(el) el.textContent='✈ '+lat.toFixed(4)+', '+lon.toFixed(4)+' · '+Math.round(hdg||0)+'°';
 }
 async function setOnTop(on){
+  clearMsg();
   if(!isApiReady()) return;
   const r=await safe('set_on_top',{on:on});
   if(r && !r.ok) setMsg(TXT.js_call_error + ' set_on_top','err');
 }
 async function setFollow(on){
+  clearMsg();
   followOn=!!on;
-  if(on && acft){ flyTo(acft.lat, acft.lon, acft.heading||0); }
+  if(on){
+    orbitStop(false);                                     // 跟随飞机时退出环绕展示
+    if(acft) flyTo(acft.lat, acft.lon, acft.heading||0, 800);
+  }
   if(!isApiReady()) return;
   const r=await safe('set_follow',{on:on});
   if(r && !r.ok) setMsg(TXT.js_call_error + ' set_follow','err');
 }
 // ---- 地图朝向：北向上 / 机头朝上 ----
-function updateRotation(){
+// 逻辑目标角：机头朝上时随航向实时变化，北向上恒为 0
+function rotTargetNow(){
   const h=(acft && typeof acft.heading==='number') ? acft.heading : 0;
-  mapRot = (upMode==='heading') ? (-h*Math.PI/180) : 0;
+  return (upMode==='heading') ? (-h*Math.PI/180) : 0;
+}
+function updateRotation(){
+  mapRot=rotTargetNow();
+  // 无动画时实时跟随（机头朝上转弯时地图要连续跟手）；动画期间由动画驱动赋值
+  if(!_animRot && !_orbit){ mapRotDisp=mapRot; mapTiltDisp=_tiltGoal; }
+}
+// ---- 朝向过渡 / 倾斜 / 环绕：共用一条 rAF 循环 ----
+function angDiff(from,to){                     // 最短路径角度差
+  let d=(to-from)%(2*Math.PI);
+  if(d>Math.PI) d-=2*Math.PI;
+  if(d<-Math.PI) d+=2*Math.PI;
+  return d;
+}
+function uiTick(){
+  _uiRaf=0;
+  const now=performance.now();
+  let need=false;
+  if(_animRot){
+    const a=_animRot;
+    let t=(now-a.start)/(a.dur||1); if(t>1) t=1;
+    const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;          // easeInOutQuad
+    const tr=rotTargetNow();
+    mapRotDisp=a.fromRot+angDiff(a.fromRot,tr)*e;
+    mapTiltDisp=a.fromTilt+(_tiltGoal-a.fromTilt)*e;
+    need=true;
+    if(t>=1){
+      mapRotDisp=tr; mapTiltDisp=_tiltGoal; _animRot=null;
+      if(a.done) a.done();
+    }
+  } else if(_orbit){
+    const dt=_orbit.last ? Math.min(0.1,(now-_orbit.last)/1000) : 0;
+    _orbit.last=now;
+    mapRotDisp-=ORBIT_SPEED*dt;                // 逆时针缓慢环绕
+    mapTiltDisp=_tiltGoal;
+    need=true;
+  }
+  if(_panAnim){
+    const p=_panAnim;
+    let t=(now-p.start)/p.dur; if(t>1) t=1;
+    const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+    let dl=p.eLon-p.sLon; if(dl>180) dl-=360; if(dl<-180) dl+=360;
+    view.lon=p.sLon+dl*e; view.lat=p.sLat+(p.eLat-p.sLat)*e;
+    clampView(); need=true;
+    if(t>=1){ _panAnim=null; refreshTiles(true); schedulePrefetch(); }
+  }
+  if(need){
+    scheduleDraw();
+    if(_animRot||_orbit||_panAnim) _uiRaf=requestAnimationFrame(uiTick);
+  }
+}
+function uiKick(){ if(!_uiRaf) _uiRaf=requestAnimationFrame(uiTick); }
+// 切换朝向：从当前显示角走最短路径到新目标角
+function switchRot(dur){
+  _animRot={start:performance.now(), dur:dur||1500, fromRot:mapRotDisp, fromTilt:mapTiltDisp, done:null};
+  uiKick();
+}
+// 选点定位结束后：缓升 45° 倾斜，随后持续逆时针环绕（直到用户任何操作）
+function orbitStart(){
+  if(upMode!=='north') return;
+  _orbit=null;
+  _tiltGoal=TILT_MAX;
+  _animRot={start:performance.now(), dur:1400, fromRot:mapRotDisp, fromTilt:mapTiltDisp,
+            done:()=>{ _orbit={last:0}; refreshTiles(true); }};
+  uiKick();
+}
+// 退出环绕：instant=true 立即复位（拖拽/缩放要跟手），否则 0.5 秒平滑复位
+function orbitStop(instant){
+  if(!_orbit && !_tiltGoal) return;
+  _orbit=null; _tiltGoal=0;
+  if(instant){
+    _animRot=null;
+    mapTiltDisp=0; mapRotDisp=rotTargetNow();
+    scheduleDraw();
+  } else {
+    _animRot={start:performance.now(), dur:520, fromRot:mapRotDisp, fromTilt:mapTiltDisp, done:null};
+  }
+  uiKick();
 }
 function refreshUpBtn(){
   const btn=document.getElementById('btnUp');
@@ -2026,17 +2576,32 @@ async function toggleUpMode(){
 }
 function applyUpMode(){
   refreshUpBtn();
+  orbitStop(false);
   // 机头朝上：地图随航向旋转，飞机必须居中才有意义，自动打开“跟随飞机”
   if(upMode==='heading' && !followOn){
     const el=document.getElementById('chkFollow');
     if(el) el.checked=true;
     setFollow(true);
   }
+  switchRot(1500);          // 先记录当前显示角作为动画起点，再更新目标角
   updateRotation();
   tileToken++;
-  drawMap(); refreshTiles(); schedulePrefetch();
+  refreshTiles(); schedulePrefetch();
+}
+// 强制北向上（选点定位时调用）：不触发"机头朝上自动跟随"那套逻辑
+function setNorthUp(){
+  if(upMode==='north') return;
+  upMode='north';
+  orbitStop(false);
+  switchRot(1200);
+  updateRotation();
+  tileToken++;
+  refreshUpBtn();
+  if(isApiReady()) safe('set_up_mode',{mode:'north'});
+  refreshTiles(); schedulePrefetch();
 }
 function toggleMapOnly(maponly){
+  orbitStop(true);                     // 画布尺寸要变，先收起倾斜环绕
   document.querySelector('.app').classList.toggle('maponly', maponly);
   // 切换地图栏内按钮显隐：仅地图时显示"显示面板"，否则显示"仅地图"
   const btnMO=document.getElementById('btnMapOnly');
@@ -2112,7 +2677,21 @@ setInterval(async ()=>{
   if(p && typeof p.lat==='number'){
     acft={lat:p.lat,lon:p.lon,heading:p.heading||0};
     let changed=false;
-    if(!drag && !favAsk){
+    // 自愈：平移动画若因异常没跑完，别让 _panAnim 永久卡住下面的居中判断（否则"跟随飞机"失效）
+    if(_panAnim && performance.now()>_panAnim.start+_panAnim.dur+600) _panAnim=null;
+    // 启动后第一次拿到有效位置：无论“跟随飞机”是否勾选，都先把镜头定位到飞机（居中 +
+    // 至少到定位级缩放），保证一打开程序就能看到飞机。只做一次；不改变用户的勾选状态
+    // （跟随关掉时，之后仍可自由拖动地图）。
+    // 若首个位置到达时用户正在拖动/选点飞行，则让位给用户操作。
+    if(_bootLocate){
+      _bootLocate=false;
+      if(!drag && !favAsk && !_anim && !_panAnim){
+        view.lat=p.lat; view.lon=p.lon;
+        view.z=Math.max(view.z, layer==='street'?12:10);   // 与「定位飞机」按钮的后备缩放一致
+        changed=true;
+      }
+    }
+    if(!drag && !favAsk && !_anim && !_panAnim){   // 相机飞行/平滑平移中让位，别抢镜头
       if(followOn){
         const moved=Math.abs(view.lat-p.lat)>1e-9||Math.abs(view.lon-p.lon)>1e-9;
         view.lat=p.lat; view.lon=p.lon;
@@ -2185,7 +2764,7 @@ function renderFav(){
   favs.forEach(f=>{
     const o=document.createElement('option');
     o.value=f.id;
-    o.textContent=f.name+' ('+f.lat.toFixed(3)+', '+f.lon.toFixed(3)+')';
+    o.textContent=f.name;
     sel.appendChild(o);
   });
   sel.value=favs.some(f=>String(f.id)===String(cur))?cur:'';
@@ -2204,12 +2783,11 @@ async function delSelFav(){
 function peekFav(f){
   if(favAsk) favAskAnswer(false);
   favAsk={fav:f, t0:Date.now()};
-  view.lon=f.lon; view.lat=f.lat;
-  setTarget(f.lat,f.lon);
-  tileToken++; drawMap(); refreshTiles(); schedulePrefetch();
+  // 选点定位：卫星图层 + 北向上 + 三阶段飞行（z5 平移 -> 预热 -> z16 突进，与搜索选点一致）
+  selectLocation(f.lat,f.lon,f.name);
   const nm=f.name||(''+f.lat.toFixed(4)+', '+f.lon.toFixed(4));
   document.getElementById('favAskText').textContent=
-    (TXT.fav_ask||'是否瞬移到「{name}」上空？').split('{name}').join(nm);
+    (TXT.fav_ask||'是否前往「{name}」上空？').split('{name}').join(nm);
   document.getElementById('favAskBar').style.width='100%';
   document.getElementById('favAsk').style.display='flex';
   favAsk.timer=setInterval(()=>{
@@ -2260,7 +2838,7 @@ async function armHotkey(){
   const payload=buildPayload();
   if(!payload){setMsg(tr('js_need_latlon'),'err');return;}
   const r=await safe('arm',payload);
-  if(!r.ok) setMsg(r.msg||'', 'err');
+  if(r.ok) clearMsg(); else setMsg(r.msg||'', 'err');
 }
 
 function unpause(){
@@ -2279,31 +2857,56 @@ function connect(){
   setTimeout(async ()=>{
     const r=await safe('connect');
     setStat(!!r.ok, r.ok?TXT.connected:TXT.not_connected);
-    setMsg(r.msg||'', r.ok?'ok':'err');
-    if(!r.ok && r.diag) renderDiagnose(r.diag);
+    if(r.ok){ setMsg(r.msg||'', 'ok'); }
+    else    { setMsg(errWithHint(r.msg, diagHint(r.diag)), 'err'); }
   }, 50);
   return false;
 }
 
-async function geocode(){
-  const q=document.getElementById('q').value;
-  const r=await safe('geocode',q);
-  if(!r||!r.ok){setMsg((r&&r.msg)||tr('js_search_fail'),'err');document.getElementById('cands').innerHTML='';return;}
+let _searchSeq=0, _qTimer=null;
+function renderCands(list){
   const box=document.getElementById('cands'); box.innerHTML='';
-  r.results.forEach(it=>{
+  (list||[]).forEach(it=>{
     const d=document.createElement('div'); d.className='item';
-    d.innerHTML='<span class="nm">'+it.name+'</span><span class="co">'+it.lat.toFixed(5)+', '+it.lon.toFixed(5)+'</span>';
+    d.innerHTML='<span class="nm">'+it.name+'</span>';
     d.onclick=()=>{
-      // 搜索选点：若“跟随飞机”处于选中，自动取消，否则点选地点会被飞机重新顶回中心
-      if(followOn){
-        const el=document.getElementById('chkFollow');
-        if(el) el.checked=false;
-        setFollow(false);
-      }
-      setTarget(it.lat,it.lon); setMsg(tr('js_chosen',{name:it.name}),'ok');
+      // 搜索选点：卫星图层 + 北向上 + 三阶段飞行（z5 平移 -> 预热 -> z16 突进）
+      selectLocation(it.lat,it.lon,it.name);
+      setMsg(tr('js_chosen',{name:it.name}),'ok');
     };
     box.appendChild(d);
   });
+  return box.children.length;
+}
+// 输入时防抖预热：先把"词典 + 最快源"的结果灌进后端缓存，回车时几乎瞬间出候选
+function onQueryInput(){
+  const q=(document.getElementById('q').value||'').trim();
+  if(_qTimer) clearTimeout(_qTimer);
+  if(q.length<2) return;
+  _qTimer=setTimeout(()=>{ if(isApiReady()) safe('geocode_fast', q); },500);
+}
+async function geocode(){
+  const q=document.getElementById('q').value;
+  const seq=++_searchSeq;
+  // 第一阶段：离线词典 + 最快源（通常 1 秒内）先把候选画出来
+  const rf=await safe('geocode_fast', q);
+  if(seq!==_searchSeq) return;
+  if(rf&&rf.ok&&rf.results&&rf.results.length){
+    renderCands(rf.results);
+    setMsg(tr('js_candidates',{n:rf.results.length}),'ok');
+  } else {
+    document.getElementById('cands').innerHTML='';
+    setMsg(tr('js_searching'),'ok');
+  }
+  // 第二阶段：全部源并行合并排序（更准），完成后直接覆盖
+  const r=await safe('geocode', q);
+  if(seq!==_searchSeq) return;
+  if(!r||!r.ok){
+    if(!document.getElementById('cands').children.length)
+      setMsg((r&&r.msg)||tr('js_search_fail'),'err');
+    return;
+  }
+  renderCands(r.results);
   setMsg(tr('js_candidates',{n:r.results.length}),'ok');
 }
 
@@ -2318,7 +2921,7 @@ function teleportCurrent(){
     if(!(st&&st.connected)){
       const c=await safe('connect');
       setStat(!!c.ok, c.ok?TXT.connected:TXT.not_connected);
-      if(!c.ok){ setMsg(c.msg||tr('js_connect_failed'),'err'); if(c.diag) renderDiagnose(c.diag); return; }
+      if(!c.ok){ setMsg(errWithHint(c.msg||tr('js_connect_failed'), diagHint(c.diag)),'err'); return; }
     } else { setStat(true); }
     setMsg(tr('js_teleporting'),'ok');
     const r=await safe('teleport',payload);
@@ -2326,34 +2929,17 @@ function teleportCurrent(){
   }, 50);
 }
 
-function renderDiagnose(d){
-  const body=document.getElementById('diagBody');
-  const panel=document.getElementById('diag');
-  const diag=d||{};
-  const lines=[];
-  lines.push(TXT.lbl_dll+(diag.dll_found?TXT.v_found:TXT.v_not_found)+'  '+(diag.dll_path||''));
-  lines.push(TXT.lbl_pkg_dir+(diag.pkg_dir||TXT.v_unknown));
-  lines.push(TXT.lbl_pkg_dll+(diag.pkg_dll_ok?TXT.v_ready:TXT.v_not_found)+'  '+(diag.pkg_dll||''));
-  const st=diag.msfs_running===true?TXT.v_running:(diag.msfs_running===false?TXT.v_not_detected:TXT.v_undetermined);
-  lines.push(TXT.lbl_msfs_proc+st+'  '+(diag.msfs_processes||[]).join(' '));
-  lines.push(TXT.lbl_app_dir+(diag.app_dir||TXT.v_unknown));
-  lines.push(TXT.lbl_work_dir+(diag.working_dir||TXT.v_unknown));
-  lines.push(TXT.lbl_python+(diag.python_exe||TXT.v_unknown));
-  lines.push(TXT.lbl_log+(diag.log_path||TXT.v_unknown));
-  if(diag.diag_error) lines.push(TXT.lbl_diag_error+diag.diag_error);
-  if(!diag.dll_found) lines.push(TXT.diag_hint_no_dll);
-  if(diag.dll_found && !diag.pkg_dll_ok) lines.push(TXT.diag_hint_copy);
-  body.textContent=lines.join('\n');
-  panel.style.display='block';
+// 连接失败时的红色文字提示：从诊断数据里挑出**最可操作的一条**，不再显示诊断面板。
+function diagHint(d){
+  const g=d||{};
+  if(!g.dll_found) return TXT.diag_hint_no_dll;
+  if(!g.pkg_dll_ok) return TXT.diag_hint_copy;
+  if(g.msfs_running===false) return TXT.hint_fix_msfs;
+  if(g.diag_error) return TXT.lbl_diag_error+g.diag_error;
+  return '';
 }
-
-async function showDiagnose(){
-  if(!isApiReady()){setMsg(tr('js_not_ready'),'err');return;}
-  setMsg(tr('js_collecting'),'ok');
-  const d=await safe('diagnose');
-  renderDiagnose(d);
-  setMsg('');
-}
+// 把基础消息与建议合成一条红色提示（建议可能为空）
+function errWithHint(base,hint){ return hint ? (base ? base+' — '+hint : hint) : (base||''); }
 
 drawMap();
 // The first connection is triggered by the readiness poll (see readyTimer)
@@ -2375,12 +2961,20 @@ def build_html():
     return html
 
 
-# 启动时优先采用用户上次在界面里选择的语言（持久化在 ui.json 的 lang 字段）
+# 启动语言：优先跟随 MSFS2024 当前界面语言（zh-* -> 中文，其他 -> 英文）。
+# 读不到 MSFS 语言（未安装/找不到配置文件）时，才沿用上次在界面里手动选择的语言（ui.json）。
+# 界面里的语言彩蛋仍可在本次会话内切换，并写入 ui.json。
 try:
-    _saved_lang = _read_ui().get("lang")
-    if _saved_lang in ("zh", "en"):
-        strings.set_lang(_saved_lang)
-        logger.info("startup language from ui.json: %s", _saved_lang)
+    _msfs_lang = strings._msfs_lang()
+    if _msfs_lang:
+        strings.set_lang(_msfs_lang)
+        logger.info("startup language from MSFS UI language: %s", _msfs_lang)
+    else:
+        _saved_lang = _read_ui().get("lang")
+        if _saved_lang in ("zh", "en"):
+            strings.set_lang(_saved_lang)
+            logger.info("startup language from ui.json (MSFS lang undetected): %s",
+                        _saved_lang)
 except Exception:  # noqa: BLE001
     pass
 
@@ -2400,32 +2994,9 @@ def _bring_self_front():
     try:
         user32 = ctypes.windll.user32
         kernel32 = ctypes.windll.kernel32
-        title_key = t("app_title").lower()
-        common_key = "msfs-2024"
-        self_pid = os.getpid()
-        found = {"hwnd": None}
-        WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
-        buf = ctypes.create_unicode_buffer(256)
-
-        def _each(hwnd, _lp):
-            if not user32.IsWindowVisible(hwnd):
-                return True
-            user32.GetWindowTextW(hwnd, buf, 256)
-            title = buf.value or ""
-            low = title.lower()
-            pid = wintypes.DWORD()
-            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-            if pid.value != self_pid:
-                return True
-            if "gdi+" in low:
-                return True
-            if common_key in low or title_key in low:
-                found["hwnd"] = hwnd
-                return False
-            return True
-
-        user32.EnumWindows(WNDENUMPROC(_each), 0)
-        hwnd = found["hwnd"]
+        # 统一走 _find_self_hwnd()：它同时认中/英标题并带兜底，
+        # 不会因界面语言切换后标题变了而找不到自己的窗口。
+        hwnd = _find_self_hwnd()
         if not hwnd:
             logger.warning("bring_self_front: own window not found")
             return False

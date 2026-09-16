@@ -1,0 +1,2661 @@
+[
+  {
+    "keys": [
+      "胡夫金字塔",
+      "吉萨大金字塔",
+      "金字塔",
+      "Pyramid",
+      "Great Pyramid",
+      "Great Pyramid of Giza"
+    ],
+    "en": "Great Pyramid of Giza",
+    "lat": 29.9792,
+    "lon": 31.1342
+  },
+  {
+    "keys": [
+      "狮身人面像",
+      "斯芬克斯",
+      "Sphinx"
+    ],
+    "en": "Great Sphinx of Giza",
+    "lat": 29.9753,
+    "lon": 31.1376
+  },
+  {
+    "keys": [
+      "埃及金字塔",
+      "吉萨金字塔群",
+      "Giza pyramid complex"
+    ],
+    "en": "Giza Pyramid Complex",
+    "lat": 29.9765,
+    "lon": 31.1313
+  },
+  {
+    "keys": [
+      "自由女神像",
+      "Statue of Liberty"
+    ],
+    "en": "Statue of Liberty",
+    "lat": 40.6892,
+    "lon": -74.0445
+  },
+  {
+    "keys": [
+      "埃菲尔铁塔",
+      "巴黎铁塔",
+      "Eiffel Tower"
+    ],
+    "en": "Eiffel Tower",
+    "lat": 48.8584,
+    "lon": 2.2945
+  },
+  {
+    "keys": [
+      "帝国大厦",
+      "Empire State Building"
+    ],
+    "en": "Empire State Building",
+    "lat": 40.7484,
+    "lon": -73.9857
+  },
+  {
+    "keys": [
+      "五角大楼",
+      "The Pentagon",
+      "Pentagon"
+    ],
+    "en": "The Pentagon",
+    "lat": 38.8719,
+    "lon": -77.0563
+  },
+  {
+    "keys": [
+      "白宫",
+      "White House"
+    ],
+    "en": "White House",
+    "lat": 38.8977,
+    "lon": -77.0365
+  },
+  {
+    "keys": [
+      "大本钟",
+      "Big Ben"
+    ],
+    "en": "Big Ben",
+    "lat": 51.5007,
+    "lon": -0.1246
+  },
+  {
+    "keys": [
+      "比萨斜塔",
+      "Leaning Tower of Pisa"
+    ],
+    "en": "Leaning Tower of Pisa",
+    "lat": 43.723,
+    "lon": 10.3966
+  },
+  {
+    "keys": [
+      "万里长城",
+      "长城",
+      "Great Wall",
+      "Great Wall of China"
+    ],
+    "en": "Great Wall of China (Badaling)",
+    "lat": 40.4319,
+    "lon": 116.5704
+  },
+  {
+    "keys": [
+      "故宫",
+      "紫禁城",
+      "Forbidden City"
+    ],
+    "en": "Forbidden City",
+    "lat": 39.9163,
+    "lon": 116.3972
+  },
+  {
+    "keys": [
+      "泰姬陵",
+      "Taj Mahal"
+    ],
+    "en": "Taj Mahal",
+    "lat": 27.1751,
+    "lon": 78.0421
+  },
+  {
+    "keys": [
+      "复活节岛",
+      "Easter Island"
+    ],
+    "en": "Easter Island",
+    "lat": -27.1127,
+    "lon": -109.3497
+  },
+  {
+    "keys": [
+      "巨石阵",
+      "Stonehenge"
+    ],
+    "en": "Stonehenge",
+    "lat": 51.1789,
+    "lon": -1.8262
+  },
+  {
+    "keys": [
+      "马丘比丘",
+      "Machu Picchu"
+    ],
+    "en": "Machu Picchu",
+    "lat": -13.1631,
+    "lon": -72.545
+  },
+  {
+    "keys": [
+      "克里姆林宫",
+      "Moscow Kremlin",
+      "Kremlin"
+    ],
+    "en": "Moscow Kremlin",
+    "lat": 55.752,
+    "lon": 37.6175
+  },
+  {
+    "keys": [
+      "红场",
+      "Red Square"
+    ],
+    "en": "Red Square",
+    "lat": 55.7539,
+    "lon": 37.6208
+  },
+  {
+    "keys": [
+      "雅典卫城",
+      "Acropolis",
+      "Acropolis of Athens"
+    ],
+    "en": "Acropolis of Athens",
+    "lat": 37.9715,
+    "lon": 23.7267
+  },
+  {
+    "keys": [
+      "罗马斗兽场",
+      "罗马竞技场",
+      "Colosseum"
+    ],
+    "en": "Colosseum",
+    "lat": 41.8902,
+    "lon": 12.4922
+  },
+  {
+    "keys": [
+      "富士山",
+      "Mount Fuji",
+      "Fuji"
+    ],
+    "en": "Mount Fuji",
+    "lat": 35.3606,
+    "lon": 138.7274
+  },
+  {
+    "keys": [
+      "悉尼歌剧院",
+      "Sydney Opera House"
+    ],
+    "en": "Sydney Opera House",
+    "lat": -33.8568,
+    "lon": 151.2153
+  },
+  {
+    "keys": [
+      "基督像",
+      "救世基督像",
+      "Christ the Redeemer"
+    ],
+    "en": "Christ the Redeemer",
+    "lat": -22.9519,
+    "lon": -43.2105
+  },
+  {
+    "keys": [
+      "大堡礁",
+      "Great Barrier Reef"
+    ],
+    "en": "Great Barrier Reef",
+    "lat": -18.2871,
+    "lon": 147.6992
+  },
+  {
+    "keys": [
+      "尼亚加拉瀑布",
+      "Niagara Falls"
+    ],
+    "en": "Niagara Falls",
+    "lat": 43.0962,
+    "lon": -79.0377
+  },
+  {
+    "keys": [
+      "珠穆朗玛峰",
+      "珠峰",
+      "Mount Everest",
+      "Everest"
+    ],
+    "en": "Mount Everest",
+    "lat": 27.9881,
+    "lon": 86.925
+  },
+  {
+    "keys": [
+      "撒哈拉沙漠",
+      "Sahara",
+      "Sahara Desert"
+    ],
+    "en": "Sahara Desert",
+    "lat": 23.4162,
+    "lon": 25.6628
+  },
+  {
+    "keys": [
+      "亚马逊河",
+      "Amazon",
+      "Amazon River"
+    ],
+    "en": "Amazon River",
+    "lat": -3.4653,
+    "lon": -62.2159
+  },
+  {
+    "keys": [
+      "尼罗河",
+      "Nile",
+      "Nile River"
+    ],
+    "en": "Nile River",
+    "lat": 30.0828,
+    "lon": 31.237
+  },
+  {
+    "keys": [
+      "死海",
+      "Dead Sea"
+    ],
+    "en": "Dead Sea",
+    "lat": 31.5012,
+    "lon": 35.5012
+  },
+  {
+    "keys": [
+      "红海",
+      "Red Sea"
+    ],
+    "en": "Red Sea",
+    "lat": 20.0,
+    "lon": 38.0
+  },
+  {
+    "keys": [
+      "南极",
+      "南极洲",
+      "Antarctica"
+    ],
+    "en": "Antarctica",
+    "lat": -82.8628,
+    "lon": 0.0
+  },
+  {
+    "keys": [
+      "北极",
+      "北极点",
+      "North Pole"
+    ],
+    "en": "North Pole",
+    "lat": 90.0,
+    "lon": 0.0
+  },
+  {
+    "keys": [
+      "好望角",
+      "Cape of Good Hope"
+    ],
+    "en": "Cape of Good Hope",
+    "lat": -34.3572,
+    "lon": 18.4736
+  },
+  {
+    "keys": [
+      "乞力马扎罗山",
+      "Kilimanjaro",
+      "Mount Kilimanjaro"
+    ],
+    "en": "Mount Kilimanjaro",
+    "lat": -3.0674,
+    "lon": 37.3556
+  },
+  {
+    "keys": [
+      "维多利亚瀑布",
+      "Victoria Falls"
+    ],
+    "en": "Victoria Falls",
+    "lat": -17.9243,
+    "lon": 25.8572
+  },
+  {
+    "keys": [
+      "赫尔木兹海峡",
+      "Strait of Hormuz",
+      "Hormuz"
+    ],
+    "en": "Strait of Hormuz",
+    "lat": 26.5667,
+    "lon": 56.25
+  },
+  {
+    "keys": [
+      "马六甲海峡",
+      "Strait of Malacca",
+      "Malacca"
+    ],
+    "en": "Strait of Malacca",
+    "lat": 2.5,
+    "lon": 101.0
+  },
+  {
+    "keys": [
+      "台湾海峡",
+      "Taiwan Strait"
+    ],
+    "en": "Taiwan Strait",
+    "lat": 24.5,
+    "lon": 119.5
+  },
+  {
+    "keys": [
+      "英吉利海峡",
+      "English Channel",
+      "Channel"
+    ],
+    "en": "English Channel",
+    "lat": 50.5,
+    "lon": -0.5
+  },
+  {
+    "keys": [
+      "直布罗陀海峡",
+      "Strait of Gibraltar",
+      "Gibraltar"
+    ],
+    "en": "Strait of Gibraltar",
+    "lat": 35.95,
+    "lon": -5.6
+  },
+  {
+    "keys": [
+      "苏伊士运河",
+      "Suez Canal"
+    ],
+    "en": "Suez Canal",
+    "lat": 30.5,
+    "lon": 32.35
+  },
+  {
+    "keys": [
+      "巴拿马运河",
+      "Panama Canal"
+    ],
+    "en": "Panama Canal",
+    "lat": 9.08,
+    "lon": -79.68
+  },
+  {
+    "keys": [
+      "巴黎",
+      "Paris"
+    ],
+    "en": "Paris",
+    "lat": 48.8566,
+    "lon": 2.3522
+  },
+  {
+    "keys": [
+      "伦敦",
+      "London"
+    ],
+    "en": "London",
+    "lat": 51.5074,
+    "lon": -0.1278
+  },
+  {
+    "keys": [
+      "纽约",
+      "New York",
+      "NYC"
+    ],
+    "en": "New York",
+    "lat": 40.7128,
+    "lon": -74.006
+  },
+  {
+    "keys": [
+      "东京",
+      "Tokyo"
+    ],
+    "en": "Tokyo",
+    "lat": 35.6762,
+    "lon": 139.6503
+  },
+  {
+    "keys": [
+      "华盛顿",
+      "Washington",
+      "Washington DC"
+    ],
+    "en": "Washington, D.C.",
+    "lat": 38.9072,
+    "lon": -77.0369
+  },
+  {
+    "keys": [
+      "莫斯科",
+      "Moscow"
+    ],
+    "en": "Moscow",
+    "lat": 55.7558,
+    "lon": 37.6173
+  },
+  {
+    "keys": [
+      "开罗",
+      "Cairo"
+    ],
+    "en": "Cairo",
+    "lat": 30.0444,
+    "lon": 31.2357
+  },
+  {
+    "keys": [
+      "罗马",
+      "Rome"
+    ],
+    "en": "Rome",
+    "lat": 41.9028,
+    "lon": 12.4964
+  },
+  {
+    "keys": [
+      "柏林",
+      "Berlin"
+    ],
+    "en": "Berlin",
+    "lat": 52.52,
+    "lon": 13.405
+  },
+  {
+    "keys": [
+      "悉尼",
+      "Sydney"
+    ],
+    "en": "Sydney",
+    "lat": -33.8688,
+    "lon": 151.2093
+  },
+  {
+    "keys": [
+      "洛杉矶",
+      "Los Angeles"
+    ],
+    "en": "Los Angeles",
+    "lat": 34.0522,
+    "lon": -118.2437
+  },
+  {
+    "keys": [
+      "旧金山",
+      "San Francisco"
+    ],
+    "en": "San Francisco",
+    "lat": 37.7749,
+    "lon": -122.4194
+  },
+  {
+    "keys": [
+      "迪拜",
+      "Dubai"
+    ],
+    "en": "Dubai",
+    "lat": 25.2048,
+    "lon": 55.2708
+  },
+  {
+    "keys": [
+      "伊斯坦布尔",
+      "Istanbul"
+    ],
+    "en": "Istanbul",
+    "lat": 41.0082,
+    "lon": 28.9784
+  },
+  {
+    "keys": [
+      "耶路撒冷",
+      "Jerusalem"
+    ],
+    "en": "Jerusalem",
+    "lat": 31.7683,
+    "lon": 35.2137
+  },
+  {
+    "keys": [
+      "曼谷",
+      "Bangkok"
+    ],
+    "en": "Bangkok",
+    "lat": 13.7563,
+    "lon": 100.5018
+  },
+  {
+    "keys": [
+      "新加坡",
+      "Singapore"
+    ],
+    "en": "Singapore",
+    "lat": 1.3521,
+    "lon": 103.8198
+  },
+  {
+    "keys": [
+      "香港",
+      "Hong Kong"
+    ],
+    "en": "Hong Kong",
+    "lat": 22.3193,
+    "lon": 114.1694
+  },
+  {
+    "keys": [
+      "北京",
+      "Beijing",
+      "Peking"
+    ],
+    "en": "Beijing",
+    "lat": 39.9042,
+    "lon": 116.4074
+  },
+  {
+    "keys": [
+      "上海",
+      "Shanghai"
+    ],
+    "en": "Shanghai",
+    "lat": 31.2304,
+    "lon": 121.4737
+  },
+  {
+    "keys": [
+      "台北",
+      "Taipei",
+      "台湾"
+    ],
+    "en": "Taipei",
+    "lat": 25.033,
+    "lon": 121.5654
+  },
+  {
+    "keys": [
+      "西岸",
+      "约旦河西岸",
+      "West Bank"
+    ],
+    "en": "West Bank",
+    "lat": 32.0,
+    "lon": 35.3
+  },
+  {
+    "keys": [
+      "加沙",
+      "加沙地带",
+      "Gaza",
+      "Gaza Strip"
+    ],
+    "en": "Gaza Strip",
+    "lat": 31.3,
+    "lon": 34.45
+  },
+  {
+    "keys": [
+      "乌克兰",
+      "Ukraine"
+    ],
+    "en": "Ukraine",
+    "lat": 48.3794,
+    "lon": 31.1656
+  },
+  {
+    "keys": [
+      "顿巴斯",
+      "Donbas",
+      "Donbass"
+    ],
+    "en": "Donbas",
+    "lat": 48.0,
+    "lon": 38.0
+  },
+  {
+    "keys": [
+      "南海",
+      "南中国海",
+      "South China Sea"
+    ],
+    "en": "South China Sea",
+    "lat": 15.0,
+    "lon": 115.0
+  },
+  {
+    "keys": [
+      "威尼斯",
+      "Venice"
+    ],
+    "en": "Venice",
+    "lat": 45.4408,
+    "lon": 12.3155
+  },
+  {
+    "keys": [
+      "马尔代夫",
+      "Maldives"
+    ],
+    "en": "Maldives",
+    "lat": 3.2028,
+    "lon": 73.2207
+  },
+  {
+    "keys": [
+      "巴厘岛",
+      "Bali"
+    ],
+    "en": "Bali",
+    "lat": -8.4095,
+    "lon": 115.1889
+  },
+  {
+    "keys": [
+      "夏威夷",
+      "Hawaii"
+    ],
+    "en": "Hawaii",
+    "lat": 21.3069,
+    "lon": -157.8583
+  },
+  {
+    "keys": [
+      "黄石公园",
+      "Yellowstone",
+      "Yellowstone National Park"
+    ],
+    "en": "Yellowstone National Park",
+    "lat": 44.428,
+    "lon": -110.5885
+  },
+  {
+    "keys": [
+      "大峡谷",
+      "Grand Canyon"
+    ],
+    "en": "Grand Canyon",
+    "lat": 36.1069,
+    "lon": -112.1129
+  },
+  {
+    "keys": [
+      "福岛",
+      "Fukushima"
+    ],
+    "en": "Fukushima",
+    "lat": 37.7597,
+    "lon": 140.4725
+  },
+  {
+    "keys": [
+      "雅典",
+      "Athens"
+    ],
+    "en": "Athens",
+    "lat": 37.9838,
+    "lon": 23.7275
+  },
+  {
+    "keys": [
+      "首尔",
+      "Seoul"
+    ],
+    "en": "Seoul",
+    "lat": 37.5665,
+    "lon": 126.978
+  },
+  {
+    "keys": [
+      "京都",
+      "Kyoto"
+    ],
+    "en": "Kyoto",
+    "lat": 35.0116,
+    "lon": 135.7681
+  },
+  {
+    "keys": [
+      "大阪",
+      "Osaka"
+    ],
+    "en": "Osaka",
+    "lat": 34.6938,
+    "lon": 135.5011
+  },
+  {
+    "keys": [
+      "札幌",
+      "Sapporo"
+    ],
+    "en": "Sapporo",
+    "lat": 43.0667,
+    "lon": 141.35
+  },
+  {
+    "keys": [
+      "冲绳",
+      "Okinawa"
+    ],
+    "en": "Okinawa",
+    "lat": 26.3358,
+    "lon": 127.8014
+  },
+  {
+    "keys": [
+      "釜山",
+      "Busan"
+    ],
+    "en": "Busan",
+    "lat": 35.1017,
+    "lon": 129.03
+  },
+  {
+    "keys": [
+      "普吉岛",
+      "普吉",
+      "Phuket"
+    ],
+    "en": "Phuket",
+    "lat": 7.8906,
+    "lon": 98.3981
+  },
+  {
+    "keys": [
+      "清迈",
+      "Chiang Mai"
+    ],
+    "en": "Chiang Mai",
+    "lat": 18.7904,
+    "lon": 98.9847
+  },
+  {
+    "keys": [
+      "芭提雅",
+      "Pattaya"
+    ],
+    "en": "Pattaya",
+    "lat": 12.9333,
+    "lon": 100.8833
+  },
+  {
+    "keys": [
+      "甲米",
+      "Krabi"
+    ],
+    "en": "Krabi",
+    "lat": 8.0726,
+    "lon": 98.9105
+  },
+  {
+    "keys": [
+      "苏梅岛",
+      "苏梅",
+      "Koh Samui",
+      "Samui"
+    ],
+    "en": "Ko Samui",
+    "lat": 9.5357,
+    "lon": 99.9357
+  },
+  {
+    "keys": [
+      "吉隆坡",
+      "Kuala Lumpur"
+    ],
+    "en": "Kuala Lumpur",
+    "lat": 3.1412,
+    "lon": 101.6865
+  },
+  {
+    "keys": [
+      "槟城",
+      "Penang",
+      "乔治市"
+    ],
+    "en": "George Town",
+    "lat": 5.4112,
+    "lon": 100.3354
+  },
+  {
+    "keys": [
+      "亚庇",
+      "哥打基纳巴卢",
+      "Kota Kinabalu"
+    ],
+    "en": "Kota Kinabalu",
+    "lat": 5.9749,
+    "lon": 116.0724
+  },
+  {
+    "keys": [
+      "仙本那",
+      "Semporna"
+    ],
+    "en": "Semporna",
+    "lat": 4.4818,
+    "lon": 118.6112
+  },
+  {
+    "keys": [
+      "雅加达",
+      "Jakarta"
+    ],
+    "en": "Jakarta",
+    "lat": -6.2146,
+    "lon": 106.8451
+  },
+  {
+    "keys": [
+      "日惹",
+      "Yogyakarta"
+    ],
+    "en": "Yogyakarta",
+    "lat": -7.8014,
+    "lon": 110.3647
+  },
+  {
+    "keys": [
+      "胡志明市",
+      "西贡",
+      "Ho Chi Minh City"
+    ],
+    "en": "Ho Chi Minh City",
+    "lat": 10.823,
+    "lon": 106.6296
+  },
+  {
+    "keys": [
+      "河内",
+      "Hanoi"
+    ],
+    "en": "Hanoi",
+    "lat": 21.0245,
+    "lon": 105.8412
+  },
+  {
+    "keys": [
+      "岘港",
+      "Da Nang"
+    ],
+    "en": "Da Nang",
+    "lat": 16.0678,
+    "lon": 108.2208
+  },
+  {
+    "keys": [
+      "芽庄",
+      "Nha Trang"
+    ],
+    "en": "Nha Trang",
+    "lat": 12.2451,
+    "lon": 109.1943
+  },
+  {
+    "keys": [
+      "金边",
+      "Phnom Penh"
+    ],
+    "en": "Phnom Penh",
+    "lat": 11.5625,
+    "lon": 104.916
+  },
+  {
+    "keys": [
+      "暹粒",
+      "吴哥窟",
+      "Angkor",
+      "Siem Reap"
+    ],
+    "en": "Siem Reap",
+    "lat": 13.3618,
+    "lon": 103.8606
+  },
+  {
+    "keys": [
+      "万象",
+      "Vientiane"
+    ],
+    "en": "Vientiane",
+    "lat": 17.9667,
+    "lon": 102.6
+  },
+  {
+    "keys": [
+      "琅勃拉邦",
+      "Luang Prabang"
+    ],
+    "en": "Luang Prabang",
+    "lat": 19.8933,
+    "lon": 102.1525
+  },
+  {
+    "keys": [
+      "仰光",
+      "Yangon",
+      "Rangoon"
+    ],
+    "en": "Yangon",
+    "lat": 16.8053,
+    "lon": 96.1561
+  },
+  {
+    "keys": [
+      "曼德勒",
+      "Mandalay"
+    ],
+    "en": "Mandalay",
+    "lat": 21.9747,
+    "lon": 96.0836
+  },
+  {
+    "keys": [
+      "马尼拉",
+      "Manila"
+    ],
+    "en": "Manila",
+    "lat": 14.6042,
+    "lon": 120.9822
+  },
+  {
+    "keys": [
+      "宿务",
+      "Cebu"
+    ],
+    "en": "Cebu City",
+    "lat": 10.3167,
+    "lon": 123.8907
+  },
+  {
+    "keys": [
+      "科伦坡",
+      "Colombo"
+    ],
+    "en": "Colombo",
+    "lat": 6.9355,
+    "lon": 79.8487
+  },
+  {
+    "keys": [
+      "加德满都",
+      "Kathmandu",
+      "Katmandu"
+    ],
+    "en": "Kathmandu",
+    "lat": 27.7017,
+    "lon": 85.3206
+  },
+  {
+    "keys": [
+      "新德里",
+      "德里",
+      "Delhi",
+      "New Delhi"
+    ],
+    "en": "Delhi",
+    "lat": 28.6519,
+    "lon": 77.2315
+  },
+  {
+    "keys": [
+      "孟买",
+      "Mumbai",
+      "Bombay"
+    ],
+    "en": "Mumbai",
+    "lat": 19.0728,
+    "lon": 72.8826
+  },
+  {
+    "keys": [
+      "斋普尔",
+      "Jaipur"
+    ],
+    "en": "Jaipur",
+    "lat": 26.9196,
+    "lon": 75.7878
+  },
+  {
+    "keys": [
+      "阿拉木图",
+      "Almaty"
+    ],
+    "en": "Almaty",
+    "lat": 43.2525,
+    "lon": 76.9115
+  },
+  {
+    "keys": [
+      "努尔苏丹",
+      "阿斯塔纳",
+      "Astana"
+    ],
+    "en": "Astana",
+    "lat": 51.1801,
+    "lon": 71.446
+  },
+  {
+    "keys": [
+      "塔什干",
+      "Tashkent"
+    ],
+    "en": "Tashkent",
+    "lat": 41.2647,
+    "lon": 69.2163
+  },
+  {
+    "keys": [
+      "撒马尔罕",
+      "Samarkand"
+    ],
+    "en": "Samarkand",
+    "lat": 39.6546,
+    "lon": 66.9644
+  },
+  {
+    "keys": [
+      "比什凯克",
+      "Bishkek"
+    ],
+    "en": "Bishkek",
+    "lat": 42.87,
+    "lon": 74.59
+  },
+  {
+    "keys": [
+      "杜尚别",
+      "Dushanbe"
+    ],
+    "en": "Dushanbe",
+    "lat": 38.5358,
+    "lon": 68.779
+  },
+  {
+    "keys": [
+      "阿什哈巴德",
+      "Ashgabat"
+    ],
+    "en": "Ashgabat",
+    "lat": 37.95,
+    "lon": 58.3833
+  },
+  {
+    "keys": [
+      "阿布扎比",
+      "Abu Dhabi"
+    ],
+    "en": "Abu Dhabi",
+    "lat": 24.4512,
+    "lon": 54.397
+  },
+  {
+    "keys": [
+      "多哈",
+      "Doha"
+    ],
+    "en": "Doha",
+    "lat": 25.2855,
+    "lon": 51.531
+  },
+  {
+    "keys": [
+      "安塔利亚",
+      "Antalya"
+    ],
+    "en": "Antalya",
+    "lat": 36.9081,
+    "lon": 30.6956
+  },
+  {
+    "keys": [
+      "卡帕多奇亚",
+      "Cappadocia",
+      "Goreme"
+    ],
+    "en": "Göreme",
+    "lat": 38.6437,
+    "lon": 34.8353
+  },
+  {
+    "keys": [
+      "特拉维夫",
+      "Tel Aviv"
+    ],
+    "en": "Tel Aviv",
+    "lat": 32.0809,
+    "lon": 34.7806
+  },
+  {
+    "keys": [
+      "安曼",
+      "Amman"
+    ],
+    "en": "Amman",
+    "lat": 31.9552,
+    "lon": 35.945
+  },
+  {
+    "keys": [
+      "贝鲁特",
+      "Beirut"
+    ],
+    "en": "Beirut",
+    "lat": 33.8933,
+    "lon": 35.5016
+  },
+  {
+    "keys": [
+      "大马士革",
+      "Damascus"
+    ],
+    "en": "Damascus",
+    "lat": 33.5102,
+    "lon": 36.2913
+  },
+  {
+    "keys": [
+      "德黑兰",
+      "Tehran"
+    ],
+    "en": "Tehran",
+    "lat": 35.6944,
+    "lon": 51.4215
+  },
+  {
+    "keys": [
+      "利雅得",
+      "Riyadh"
+    ],
+    "en": "Riyadh",
+    "lat": 24.6877,
+    "lon": 46.7219
+  },
+  {
+    "keys": [
+      "爱丁堡",
+      "Edinburgh"
+    ],
+    "en": "Edinburgh",
+    "lat": 55.9521,
+    "lon": -3.1965
+  },
+  {
+    "keys": [
+      "曼彻斯特",
+      "Manchester"
+    ],
+    "en": "Manchester",
+    "lat": 53.4809,
+    "lon": -2.2374
+  },
+  {
+    "keys": [
+      "佛罗伦萨",
+      "Florence"
+    ],
+    "en": "Florence",
+    "lat": 43.7792,
+    "lon": 11.2463
+  },
+  {
+    "keys": [
+      "米兰",
+      "Milan"
+    ],
+    "en": "Milan",
+    "lat": 45.4643,
+    "lon": 9.1895
+  },
+  {
+    "keys": [
+      "维也纳",
+      "Vienna"
+    ],
+    "en": "Vienna",
+    "lat": 48.2085,
+    "lon": 16.3721
+  },
+  {
+    "keys": [
+      "萨尔茨堡",
+      "Salzburg"
+    ],
+    "en": "Salzburg",
+    "lat": 47.7994,
+    "lon": 13.044
+  },
+  {
+    "keys": [
+      "布拉格",
+      "Prague"
+    ],
+    "en": "Prague",
+    "lat": 50.088,
+    "lon": 14.4208
+  },
+  {
+    "keys": [
+      "布达佩斯",
+      "Budapest"
+    ],
+    "en": "Budapest",
+    "lat": 47.4984,
+    "lon": 19.0404
+  },
+  {
+    "keys": [
+      "阿姆斯特丹",
+      "Amsterdam"
+    ],
+    "en": "Amsterdam",
+    "lat": 52.374,
+    "lon": 4.8897
+  },
+  {
+    "keys": [
+      "鹿特丹",
+      "Rotterdam"
+    ],
+    "en": "Rotterdam",
+    "lat": 51.9225,
+    "lon": 4.4792
+  },
+  {
+    "keys": [
+      "巴塞罗那",
+      "Barcelona"
+    ],
+    "en": "Barcelona",
+    "lat": 41.3888,
+    "lon": 2.159
+  },
+  {
+    "keys": [
+      "马德里",
+      "Madrid"
+    ],
+    "en": "Madrid",
+    "lat": 40.4165,
+    "lon": -3.7026
+  },
+  {
+    "keys": [
+      "里斯本",
+      "Lisbon"
+    ],
+    "en": "Lisbon",
+    "lat": 38.7251,
+    "lon": -9.1498
+  },
+  {
+    "keys": [
+      "波尔图",
+      "Porto"
+    ],
+    "en": "Porto",
+    "lat": 41.1496,
+    "lon": -8.611
+  },
+  {
+    "keys": [
+      "苏黎世",
+      "Zurich"
+    ],
+    "en": "Zürich",
+    "lat": 47.3667,
+    "lon": 8.55
+  },
+  {
+    "keys": [
+      "日内瓦",
+      "Geneva"
+    ],
+    "en": "Genève",
+    "lat": 46.2022,
+    "lon": 6.1457
+  },
+  {
+    "keys": [
+      "慕尼黑",
+      "Munich"
+    ],
+    "en": "Munich",
+    "lat": 48.1374,
+    "lon": 11.5755
+  },
+  {
+    "keys": [
+      "汉堡",
+      "Hamburg"
+    ],
+    "en": "Hamburg",
+    "lat": 53.5507,
+    "lon": 9.993
+  },
+  {
+    "keys": [
+      "哥本哈根",
+      "Copenhagen"
+    ],
+    "en": "Copenhagen",
+    "lat": 55.6759,
+    "lon": 12.5655
+  },
+  {
+    "keys": [
+      "斯德哥尔摩",
+      "Stockholm"
+    ],
+    "en": "Stockholm",
+    "lat": 59.3294,
+    "lon": 18.0687
+  },
+  {
+    "keys": [
+      "奥斯陆",
+      "Oslo"
+    ],
+    "en": "Oslo",
+    "lat": 59.9127,
+    "lon": 10.7461
+  },
+  {
+    "keys": [
+      "赫尔辛基",
+      "Helsinki"
+    ],
+    "en": "Helsinki",
+    "lat": 60.1695,
+    "lon": 24.9354
+  },
+  {
+    "keys": [
+      "布鲁塞尔",
+      "Brussels"
+    ],
+    "en": "Brussels",
+    "lat": 50.8505,
+    "lon": 4.3488
+  },
+  {
+    "keys": [
+      "雷克雅未克",
+      "Reykjavik"
+    ],
+    "en": "Reykjavík",
+    "lat": 64.1355,
+    "lon": -21.8954
+  },
+  {
+    "keys": [
+      "都柏林",
+      "Dublin"
+    ],
+    "en": "Dublin",
+    "lat": 53.3331,
+    "lon": -6.2489
+  },
+  {
+    "keys": [
+      "华沙",
+      "Warsaw"
+    ],
+    "en": "Warsaw",
+    "lat": 52.2298,
+    "lon": 21.0118
+  },
+  {
+    "keys": [
+      "卡萨布兰卡",
+      "Casablanca"
+    ],
+    "en": "Casablanca",
+    "lat": 33.5883,
+    "lon": -7.6114
+  },
+  {
+    "keys": [
+      "马拉喀什",
+      "Marrakech"
+    ],
+    "en": "Marrakesh",
+    "lat": 31.6342,
+    "lon": -7.9999
+  },
+  {
+    "keys": [
+      "开普敦",
+      "Cape Town"
+    ],
+    "en": "Cape Town",
+    "lat": -33.9258,
+    "lon": 18.4232
+  },
+  {
+    "keys": [
+      "约翰内斯堡",
+      "Johannesburg"
+    ],
+    "en": "Johannesburg",
+    "lat": -26.2023,
+    "lon": 28.0436
+  },
+  {
+    "keys": [
+      "内罗毕",
+      "Nairobi"
+    ],
+    "en": "Nairobi",
+    "lat": -1.2833,
+    "lon": 36.8167
+  },
+  {
+    "keys": [
+      "桑给巴尔",
+      "Zanzibar"
+    ],
+    "en": "Zanzibar",
+    "lat": -6.1639,
+    "lon": 39.1979
+  },
+  {
+    "keys": [
+      "拉斯维加斯",
+      "Las Vegas"
+    ],
+    "en": "Las Vegas",
+    "lat": 35.5939,
+    "lon": -105.2239
+  },
+  {
+    "keys": [
+      "檀香山",
+      "火奴鲁鲁",
+      "Honolulu"
+    ],
+    "en": "Honolulu",
+    "lat": 21.3069,
+    "lon": -157.8583
+  },
+  {
+    "keys": [
+      "迈阿密",
+      "Miami"
+    ],
+    "en": "Miami",
+    "lat": 25.7743,
+    "lon": -80.1937
+  },
+  {
+    "keys": [
+      "芝加哥",
+      "Chicago"
+    ],
+    "en": "Chicago",
+    "lat": 41.85,
+    "lon": -87.65
+  },
+  {
+    "keys": [
+      "西雅图",
+      "Seattle"
+    ],
+    "en": "Seattle",
+    "lat": 47.6062,
+    "lon": -122.3321
+  },
+  {
+    "keys": [
+      "波士顿",
+      "Boston"
+    ],
+    "en": "Boston",
+    "lat": 42.3584,
+    "lon": -71.0598
+  },
+  {
+    "keys": [
+      "温哥华",
+      "Vancouver"
+    ],
+    "en": "Vancouver",
+    "lat": 49.2497,
+    "lon": -123.1193
+  },
+  {
+    "keys": [
+      "多伦多",
+      "Toronto"
+    ],
+    "en": "Toronto",
+    "lat": 43.7064,
+    "lon": -79.3986
+  },
+  {
+    "keys": [
+      "墨西哥城",
+      "Mexico City"
+    ],
+    "en": "Mexico City",
+    "lat": 19.4285,
+    "lon": -99.1277
+  },
+  {
+    "keys": [
+      "坎昆",
+      "Cancun"
+    ],
+    "en": "Cancún",
+    "lat": 21.1743,
+    "lon": -86.8466
+  },
+  {
+    "keys": [
+      "哈瓦那",
+      "Havana"
+    ],
+    "en": "Havana",
+    "lat": 23.133,
+    "lon": -82.383
+  },
+  {
+    "keys": [
+      "里约热内卢",
+      "Rio de Janeiro"
+    ],
+    "en": "Rio de Janeiro",
+    "lat": -22.9064,
+    "lon": -43.1822
+  },
+  {
+    "keys": [
+      "布宜诺斯艾利斯",
+      "Buenos Aires"
+    ],
+    "en": "Buenos Aires",
+    "lat": -34.6131,
+    "lon": -58.3772
+  },
+  {
+    "keys": [
+      "利马",
+      "Lima"
+    ],
+    "en": "Lima",
+    "lat": -12.0432,
+    "lon": -77.0282
+  },
+  {
+    "keys": [
+      "库斯科",
+      "Cusco"
+    ],
+    "en": "Cusco",
+    "lat": -13.5319,
+    "lon": -71.967
+  },
+  {
+    "keys": [
+      "加拉加斯",
+      "Caracas"
+    ],
+    "en": "Caracas",
+    "lat": 10.488,
+    "lon": -66.8792
+  },
+  {
+    "keys": [
+      "圣地亚哥",
+      "Santiago"
+    ],
+    "en": "Santiago",
+    "lat": -33.4569,
+    "lon": -70.6483
+  },
+  {
+    "keys": [
+      "墨尔本",
+      "Melbourne"
+    ],
+    "en": "Melbourne",
+    "lat": -37.814,
+    "lon": 144.9633
+  },
+  {
+    "keys": [
+      "黄金海岸",
+      "Gold Coast"
+    ],
+    "en": "Gold Coast",
+    "lat": -28.0003,
+    "lon": 153.4309
+  },
+  {
+    "keys": [
+      "珀斯",
+      "Perth"
+    ],
+    "en": "Perth",
+    "lat": -31.9522,
+    "lon": 115.8614
+  },
+  {
+    "keys": [
+      "布里斯班",
+      "Brisbane"
+    ],
+    "en": "Brisbane",
+    "lat": -27.4679,
+    "lon": 153.0281
+  },
+  {
+    "keys": [
+      "奥克兰",
+      "Auckland"
+    ],
+    "en": "Auckland",
+    "lat": -36.8485,
+    "lon": 174.7635
+  },
+  {
+    "keys": [
+      "皇后镇",
+      "Queenstown"
+    ],
+    "en": "Queenstown",
+    "lat": -45.0302,
+    "lon": 168.6627
+  },
+  {
+    "keys": [
+      "基辅",
+      "Kiev",
+      "Kyiv"
+    ],
+    "en": "Kyiv",
+    "lat": 50.4547,
+    "lon": 30.5238
+  },
+  {
+    "keys": [
+      "哈尔科夫",
+      "Kharkiv"
+    ],
+    "en": "Kharkiv",
+    "lat": 49.9818,
+    "lon": 36.2548
+  },
+  {
+    "keys": [
+      "圣彼得堡",
+      "Saint Petersburg"
+    ],
+    "en": "Saint Petersburg",
+    "lat": 59.9386,
+    "lon": 30.3141
+  },
+  {
+    "keys": [
+      "平壤",
+      "Pyongyang"
+    ],
+    "en": "Pyongyang",
+    "lat": 39.0339,
+    "lon": 125.7543
+  },
+  {
+    "keys": [
+      "喀布尔",
+      "Kabul"
+    ],
+    "en": "Kabul",
+    "lat": 34.5281,
+    "lon": 69.1723
+  },
+  {
+    "keys": [
+      "伊斯兰堡",
+      "Islamabad"
+    ],
+    "en": "Islamabad",
+    "lat": 33.7215,
+    "lon": 73.0433
+  },
+  {
+    "keys": [
+      "圣托里尼岛",
+      "Santorini Island",
+      "圣托里尼"
+    ],
+    "en": "Santorini",
+    "lat": 36.3932,
+    "lon": 25.4615
+  },
+  {
+    "keys": [
+      "佩特拉",
+      "Petra"
+    ],
+    "en": "Petra",
+    "lat": 30.3285,
+    "lon": 35.4444
+  },
+  {
+    "keys": [
+      "奇琴伊察",
+      "Chichen Itza"
+    ],
+    "en": "Chichen Itza",
+    "lat": 20.6843,
+    "lon": -88.5678
+  },
+  {
+    "keys": [
+      "勃朗峰",
+      "Mont Blanc",
+      "White Mountain"
+    ],
+    "en": "Mont Blanc",
+    "lat": 45.8326,
+    "lon": 6.8652
+  },
+  {
+    "keys": [
+      "少女峰",
+      "Jungfrau"
+    ],
+    "en": "Jungfrau",
+    "lat": 46.5364,
+    "lon": 7.9618
+  },
+  {
+    "keys": [
+      "科隆大教堂",
+      "Cologne Cathedral"
+    ],
+    "en": "Cologne Cathedral",
+    "lat": 50.9413,
+    "lon": 6.9583
+  },
+  {
+    "keys": [
+      "圣家堂",
+      "Sagrada Familia"
+    ],
+    "en": "Sagrada Familia",
+    "lat": 41.4036,
+    "lon": 2.1744
+  },
+  {
+    "keys": [
+      "卢浮宫",
+      "Louvre"
+    ],
+    "en": "Louvre",
+    "lat": 48.8606,
+    "lon": 2.3376
+  },
+  {
+    "keys": [
+      "渔人堡",
+      "Fisherman's Bastion"
+    ],
+    "en": "Fisherman's Bastion",
+    "lat": 47.5034,
+    "lon": 19.034
+  },
+  {
+    "keys": [
+      "日本",
+      "Japan"
+    ],
+    "en": "Japan (Tokyo)",
+    "lat": 35.6762,
+    "lon": 139.6503
+  },
+  {
+    "keys": [
+      "韩国",
+      "South Korea"
+    ],
+    "en": "South Korea (Seoul)",
+    "lat": 37.5665,
+    "lon": 126.978
+  },
+  {
+    "keys": [
+      "朝鲜",
+      "North Korea"
+    ],
+    "en": "North Korea (Pyongyang)",
+    "lat": 39.0392,
+    "lon": 125.7625
+  },
+  {
+    "keys": [
+      "越南",
+      "Vietnam"
+    ],
+    "en": "Vietnam (Hanoi)",
+    "lat": 21.0278,
+    "lon": 105.8342
+  },
+  {
+    "keys": [
+      "泰国",
+      "Thailand"
+    ],
+    "en": "Thailand (Bangkok)",
+    "lat": 13.7563,
+    "lon": 100.5018
+  },
+  {
+    "keys": [
+      "马来西亚",
+      "Malaysia"
+    ],
+    "en": "Malaysia (Kuala Lumpur)",
+    "lat": 3.139,
+    "lon": 101.6869
+  },
+  {
+    "keys": [
+      "印度尼西亚",
+      "印尼",
+      "Indonesia"
+    ],
+    "en": "Indonesia (Jakarta)",
+    "lat": -6.2088,
+    "lon": 106.8456
+  },
+  {
+    "keys": [
+      "菲律宾",
+      "Philippines"
+    ],
+    "en": "Philippines (Manila)",
+    "lat": 14.5995,
+    "lon": 120.9842
+  },
+  {
+    "keys": [
+      "柬埔寨",
+      "Cambodia"
+    ],
+    "en": "Cambodia (Phnom Penh)",
+    "lat": 11.5624,
+    "lon": 104.916
+  },
+  {
+    "keys": [
+      "老挝",
+      "Laos"
+    ],
+    "en": "Laos (Vientiane)",
+    "lat": 17.9757,
+    "lon": 102.6331
+  },
+  {
+    "keys": [
+      "缅甸",
+      "Myanmar"
+    ],
+    "en": "Myanmar (Yangon)",
+    "lat": 16.8409,
+    "lon": 96.1735
+  },
+  {
+    "keys": [
+      "印度",
+      "India"
+    ],
+    "en": "India (New Delhi)",
+    "lat": 28.6139,
+    "lon": 77.209
+  },
+  {
+    "keys": [
+      "尼泊尔",
+      "Nepal"
+    ],
+    "en": "Nepal (Kathmandu)",
+    "lat": 27.7172,
+    "lon": 85.324
+  },
+  {
+    "keys": [
+      "斯里兰卡",
+      "Sri Lanka"
+    ],
+    "en": "Sri Lanka",
+    "lat": 7.8731,
+    "lon": 80.7718
+  },
+  {
+    "keys": [
+      "哈萨克斯坦",
+      "Kazakhstan"
+    ],
+    "en": "Kazakhstan (Almaty)",
+    "lat": 43.222,
+    "lon": 76.8512
+  },
+  {
+    "keys": [
+      "乌兹别克斯坦",
+      "Uzbekistan"
+    ],
+    "en": "Uzbekistan (Tashkent)",
+    "lat": 41.2995,
+    "lon": 69.2401
+  },
+  {
+    "keys": [
+      "蒙古",
+      "Mongolia"
+    ],
+    "en": "Mongolia (Ulaanbaatar)",
+    "lat": 47.8864,
+    "lon": 106.9057
+  },
+  {
+    "keys": [
+      "土耳其",
+      "Turkey"
+    ],
+    "en": "Turkey (Istanbul)",
+    "lat": 41.0082,
+    "lon": 28.9784
+  },
+  {
+    "keys": [
+      "以色列",
+      "Israel"
+    ],
+    "en": "Israel (Jerusalem)",
+    "lat": 31.7683,
+    "lon": 35.2137
+  },
+  {
+    "keys": [
+      "巴勒斯坦",
+      "Palestine"
+    ],
+    "en": "Palestine (Gaza)",
+    "lat": 31.5,
+    "lon": 34.45
+  },
+  {
+    "keys": [
+      "约旦",
+      "Jordan"
+    ],
+    "en": "Jordan (Amman)",
+    "lat": 31.9454,
+    "lon": 35.9284
+  },
+  {
+    "keys": [
+      "黎巴嫩",
+      "Lebanon"
+    ],
+    "en": "Lebanon (Beirut)",
+    "lat": 33.8547,
+    "lon": 35.8623
+  },
+  {
+    "keys": [
+      "叙利亚",
+      "Syria"
+    ],
+    "en": "Syria (Damascus)",
+    "lat": 33.5138,
+    "lon": 36.2765
+  },
+  {
+    "keys": [
+      "伊朗",
+      "Iran"
+    ],
+    "en": "Iran (Tehran)",
+    "lat": 35.6892,
+    "lon": 51.389
+  },
+  {
+    "keys": [
+      "沙特阿拉伯",
+      "Saudi Arabia"
+    ],
+    "en": "Saudi Arabia (Riyadh)",
+    "lat": 24.7136,
+    "lon": 46.6753
+  },
+  {
+    "keys": [
+      "卡塔尔",
+      "Qatar"
+    ],
+    "en": "Qatar (Doha)",
+    "lat": 25.2854,
+    "lon": 51.531
+  },
+  {
+    "keys": [
+      "埃及",
+      "Egypt"
+    ],
+    "en": "Egypt (Cairo)",
+    "lat": 30.0444,
+    "lon": 31.2357
+  },
+  {
+    "keys": [
+      "南非",
+      "South Africa"
+    ],
+    "en": "South Africa (Pretoria)",
+    "lat": -25.7461,
+    "lon": 28.1881
+  },
+  {
+    "keys": [
+      "肯尼亚",
+      "Kenya"
+    ],
+    "en": "Kenya (Nairobi)",
+    "lat": -1.2921,
+    "lon": 36.8219
+  },
+  {
+    "keys": [
+      "摩洛哥",
+      "Morocco"
+    ],
+    "en": "Morocco (Rabat)",
+    "lat": 34.0209,
+    "lon": -6.8416
+  },
+  {
+    "keys": [
+      "法国",
+      "France"
+    ],
+    "en": "France (Paris)",
+    "lat": 48.8566,
+    "lon": 2.3522
+  },
+  {
+    "keys": [
+      "英国",
+      "United Kingdom",
+      "英格兰"
+    ],
+    "en": "United Kingdom (London)",
+    "lat": 51.5074,
+    "lon": -0.1278
+  },
+  {
+    "keys": [
+      "意大利",
+      "Italy"
+    ],
+    "en": "Italy (Rome)",
+    "lat": 41.9028,
+    "lon": 12.4964
+  },
+  {
+    "keys": [
+      "德国",
+      "Germany"
+    ],
+    "en": "Germany (Berlin)",
+    "lat": 52.52,
+    "lon": 13.405
+  },
+  {
+    "keys": [
+      "西班牙",
+      "Spain"
+    ],
+    "en": "Spain (Madrid)",
+    "lat": 40.4168,
+    "lon": -3.7038
+  },
+  {
+    "keys": [
+      "葡萄牙",
+      "Portugal"
+    ],
+    "en": "Portugal (Lisbon)",
+    "lat": 38.7223,
+    "lon": -9.1393
+  },
+  {
+    "keys": [
+      "瑞士",
+      "Switzerland"
+    ],
+    "en": "Switzerland (Bern)",
+    "lat": 46.948,
+    "lon": 7.4474
+  },
+  {
+    "keys": [
+      "奥地利",
+      "Austria"
+    ],
+    "en": "Austria (Vienna)",
+    "lat": 48.2082,
+    "lon": 16.3738
+  },
+  {
+    "keys": [
+      "荷兰",
+      "Netherlands"
+    ],
+    "en": "Netherlands (Amsterdam)",
+    "lat": 52.3676,
+    "lon": 4.9041
+  },
+  {
+    "keys": [
+      "比利时",
+      "Belgium"
+    ],
+    "en": "Belgium (Brussels)",
+    "lat": 50.8503,
+    "lon": 4.3517
+  },
+  {
+    "keys": [
+      "希腊",
+      "Greece"
+    ],
+    "en": "Greece (Athens)",
+    "lat": 37.9838,
+    "lon": 23.7275
+  },
+  {
+    "keys": [
+      "捷克",
+      "Czechia"
+    ],
+    "en": "Czechia (Prague)",
+    "lat": 50.0755,
+    "lon": 14.4378
+  },
+  {
+    "keys": [
+      "匈牙利",
+      "Hungary"
+    ],
+    "en": "Hungary (Budapest)",
+    "lat": 47.1625,
+    "lon": 19.5033
+  },
+  {
+    "keys": [
+      "波兰",
+      "Poland"
+    ],
+    "en": "Poland (Warsaw)",
+    "lat": 52.2297,
+    "lon": 21.0122
+  },
+  {
+    "keys": [
+      "瑞典",
+      "Sweden"
+    ],
+    "en": "Sweden (Stockholm)",
+    "lat": 59.3293,
+    "lon": 18.0686
+  },
+  {
+    "keys": [
+      "挪威",
+      "Norway"
+    ],
+    "en": "Norway (Oslo)",
+    "lat": 59.9139,
+    "lon": 10.7522
+  },
+  {
+    "keys": [
+      "丹麦",
+      "Denmark"
+    ],
+    "en": "Denmark (Copenhagen)",
+    "lat": 55.6761,
+    "lon": 12.5683
+  },
+  {
+    "keys": [
+      "芬兰",
+      "Finland"
+    ],
+    "en": "Finland (Helsinki)",
+    "lat": 60.1699,
+    "lon": 24.9384
+  },
+  {
+    "keys": [
+      "冰岛",
+      "Iceland"
+    ],
+    "en": "Iceland (Reykjavik)",
+    "lat": 64.1466,
+    "lon": -21.9426
+  },
+  {
+    "keys": [
+      "爱尔兰",
+      "Ireland"
+    ],
+    "en": "Ireland (Dublin)",
+    "lat": 53.3498,
+    "lon": -6.2603
+  },
+  {
+    "keys": [
+      "俄罗斯",
+      "Russia"
+    ],
+    "en": "Russia (Moscow)",
+    "lat": 55.7558,
+    "lon": 37.6173
+  },
+  {
+    "keys": [
+      "美国",
+      "United States",
+      "USA"
+    ],
+    "en": "United States (Washington)",
+    "lat": 38.9072,
+    "lon": -77.0369
+  },
+  {
+    "keys": [
+      "加拿大",
+      "Canada"
+    ],
+    "en": "Canada (Ottawa)",
+    "lat": 45.4215,
+    "lon": -75.6972
+  },
+  {
+    "keys": [
+      "墨西哥",
+      "Mexico"
+    ],
+    "en": "Mexico (Mexico City)",
+    "lat": 19.4326,
+    "lon": -99.1332
+  },
+  {
+    "keys": [
+      "巴西",
+      "Brazil"
+    ],
+    "en": "Brazil (Brasilia)",
+    "lat": -15.8267,
+    "lon": -47.9218
+  },
+  {
+    "keys": [
+      "阿根廷",
+      "Argentina"
+    ],
+    "en": "Argentina (Buenos Aires)",
+    "lat": -34.6037,
+    "lon": -58.3816
+  },
+  {
+    "keys": [
+      "秘鲁",
+      "Peru"
+    ],
+    "en": "Peru (Lima)",
+    "lat": -12.0464,
+    "lon": -77.0428
+  },
+  {
+    "keys": [
+      "智利",
+      "Chile"
+    ],
+    "en": "Chile (Santiago)",
+    "lat": -33.4489,
+    "lon": -70.6693
+  },
+  {
+    "keys": [
+      "古巴",
+      "Cuba"
+    ],
+    "en": "Cuba (Havana)",
+    "lat": 23.1136,
+    "lon": -82.3666
+  },
+  {
+    "keys": [
+      "委内瑞拉",
+      "Venezuela"
+    ],
+    "en": "Venezuela (Caracas)",
+    "lat": 10.488,
+    "lon": -66.8792
+  },
+  {
+    "keys": [
+      "哥伦比亚",
+      "Colombia"
+    ],
+    "en": "Colombia (Bogota)",
+    "lat": 4.711,
+    "lon": -74.0721
+  },
+  {
+    "keys": [
+      "澳大利亚",
+      "Australia"
+    ],
+    "en": "Australia (Canberra)",
+    "lat": -35.2809,
+    "lon": 149.13
+  },
+  {
+    "keys": [
+      "新西兰",
+      "New Zealand"
+    ],
+    "en": "New Zealand (Wellington)",
+    "lat": -41.2865,
+    "lon": 174.7762
+  },
+  {
+    "keys": [
+      "斐济",
+      "Fiji"
+    ],
+    "en": "Fiji",
+    "lat": -17.7134,
+    "lon": 178.065
+  },
+  {
+    "keys": [
+      "格鲁吉亚",
+      "Georgia"
+    ],
+    "en": "Georgia (Tbilisi)",
+    "lat": 41.7151,
+    "lon": 44.8271
+  },
+  {
+    "keys": [
+      "亚美尼亚",
+      "Armenia"
+    ],
+    "en": "Armenia (Yerevan)",
+    "lat": 40.1792,
+    "lon": 44.4991
+  },
+  {
+    "keys": [
+      "阿塞拜疆",
+      "Azerbaijan"
+    ],
+    "en": "Azerbaijan (Baku)",
+    "lat": 40.4093,
+    "lon": 49.8671
+  },
+  {
+    "keys": [
+      "克里米亚",
+      "Crimea",
+      "克里木"
+    ],
+    "en": "Crimea",
+    "lat": 45.0,
+    "lon": 34.0
+  },
+  {
+    "keys": [
+      "克什米尔",
+      "Kashmir"
+    ],
+    "en": "Kashmir",
+    "lat": 34.0,
+    "lon": 76.0
+  },
+  {
+    "keys": [
+      "朝鲜半岛",
+      "Korean Peninsula"
+    ],
+    "en": "Korean Peninsula",
+    "lat": 38.0,
+    "lon": 127.0
+  },
+  {
+    "keys": [
+      "波斯湾",
+      "Persian Gulf",
+      "阿拉伯湾"
+    ],
+    "en": "Persian Gulf",
+    "lat": 26.5,
+    "lon": 51.0
+  },
+  {
+    "keys": [
+      "曼德海峡",
+      "Bab-el-Mandeb",
+      "Bab al Mandab"
+    ],
+    "en": "Bab-el-Mandeb",
+    "lat": 12.5,
+    "lon": 43.5
+  },
+  {
+    "keys": [
+      "钓鱼岛",
+      "Diaoyu Islands"
+    ],
+    "en": "Diaoyu Islands",
+    "lat": 25.75,
+    "lon": 123.47
+  },
+  {
+    "keys": [
+      "北海道",
+      "Hokkaido"
+    ],
+    "en": "Hokkaido",
+    "lat": 43.0642,
+    "lon": 141.3469
+  },
+  {
+    "keys": [
+      "济州岛",
+      "济州",
+      "Jeju"
+    ],
+    "en": "Jeju",
+    "lat": 33.489,
+    "lon": 126.5
+  },
+  {
+    "keys": [
+      "兰卡威",
+      "Langkawi"
+    ],
+    "en": "Langkawi",
+    "lat": 6.35,
+    "lon": 99.8
+  },
+  {
+    "keys": [
+      "沙巴",
+      "Sabah"
+    ],
+    "en": "Sabah",
+    "lat": 5.9788,
+    "lon": 116.0753
+  },
+  {
+    "keys": [
+      "长滩岛",
+      "Boracay"
+    ],
+    "en": "Boracay",
+    "lat": 11.9674,
+    "lon": 121.9248
+  },
+  {
+    "keys": [
+      "薄荷岛",
+      "Bohol"
+    ],
+    "en": "Bohol",
+    "lat": 9.85,
+    "lon": 124.13
+  },
+  {
+    "keys": [
+      "班加罗尔",
+      "Bangalore",
+      "Bengaluru"
+    ],
+    "en": "Bangalore",
+    "lat": 12.9716,
+    "lon": 77.5946
+  },
+  {
+    "keys": [
+      "麦加",
+      "Mecca",
+      "Makkah"
+    ],
+    "en": "Mecca",
+    "lat": 21.3891,
+    "lon": 39.8579
+  },
+  {
+    "keys": [
+      "麦地那",
+      "Medina"
+    ],
+    "en": "Medina",
+    "lat": 24.5247,
+    "lon": 39.5692
+  },
+  {
+    "keys": [
+      "法兰克福",
+      "Frankfurt"
+    ],
+    "en": "Frankfurt",
+    "lat": 50.1109,
+    "lon": 8.6821
+  },
+  {
+    "keys": [
+      "克拉科夫",
+      "Krakow"
+    ],
+    "en": "Krakow",
+    "lat": 50.0647,
+    "lon": 19.945
+  },
+  {
+    "keys": [
+      "塞舌尔",
+      "Seychelles"
+    ],
+    "en": "Seychelles",
+    "lat": -4.6796,
+    "lon": 55.4916
+  },
+  {
+    "keys": [
+      "毛里求斯",
+      "Mauritius"
+    ],
+    "en": "Mauritius",
+    "lat": -20.3484,
+    "lon": 57.5522
+  },
+  {
+    "keys": [
+      "蒙特利尔",
+      "Montreal"
+    ],
+    "en": "Montreal",
+    "lat": 45.5017,
+    "lon": -73.5673
+  },
+  {
+    "keys": [
+      "魁北克",
+      "Quebec"
+    ],
+    "en": "Quebec",
+    "lat": 46.8139,
+    "lon": -71.208
+  },
+  {
+    "keys": [
+      "圣保罗",
+      "Sao Paulo",
+      "São Paulo"
+    ],
+    "en": "Sao Paulo",
+    "lat": -23.5505,
+    "lon": -46.6333
+  },
+  {
+    "keys": [
+      "波哥大",
+      "Bogota"
+    ],
+    "en": "Bogota",
+    "lat": 4.711,
+    "lon": -74.0721
+  }
+]

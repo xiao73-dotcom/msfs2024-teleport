@@ -49,6 +49,7 @@ INCLUDE = [
     "requirements.txt",
     "app_icon.ico",
     "world_110m.json",
+    "world_famous.json",
     "SimConnect.dll",
     "README.md",
     "LICENSE",

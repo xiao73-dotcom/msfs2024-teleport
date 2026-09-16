@@ -1,66 +1,69 @@
-# MSFS2024 瞬移器 · MSFSTeleport
+# FS Relocator
 
-绕过《微软模拟飞行 2024》自由飞行"只能填机场四字代码"的限制：先进任意飞行，再用本工具把飞机瞬移到任意地点或经纬度。
+Relocate your aircraft to **any place or coordinate** in Microsoft Flight Simulator 2024 / 2020. Free flight normally lets you start only from an airport (by ICAO code); FS Relocator removes that limit — enter a flight, then move the plane anywhere you like by place name or latitude/longitude.
 
-界面支持中英双语，零外链、全本地运行。
+The UI is bilingual (Chinese / English) and follows your simulator's language automatically. Fully local, no account, no external calls, no paid APIs.
 
 ---
 
-## 下载
+## Download
 
-前往本仓库的 **Releases** 页面，下载最新 `MSFSTeleport-vX.Y.Z.exe`，双击即用，无需安装。
+Go to the **Releases** page and download the latest `FSRelocator-vX.Y.zip` (recommended) or `FSRelocator-vX.Y.exe`. Unzip and double-click `FSRelocator.exe` — no installation needed.
 
-## 使用前准备
+## Before you start
 
-- 已安装 **Microsoft Flight Simulator 2024**，并**已进入一次飞行**（飞机已载入）
-- Windows 10 / 11 自带的 **Edge WebView2**（内嵌界面依赖，一般系统已就绪）
-- 发布版 EXE 已内嵌 `SimConnect.dll`；若运行提示找不到，可把 MSFS SDK 中的 `SimConnect.dll` 复制到 EXE 同目录
+- Microsoft Flight Simulator 2024 (or 2020) installed, and **you have entered a flight at least once** (the aircraft is loaded).
+- Windows 10 / 11 with **Edge WebView2** (the embedded UI depends on it; it ships with Windows).
+- The release EXE already bundles `SimConnect.dll`. If you ever see a "SimConnect.dll not found" message, copy the DLL from the MSFS SDK into the same folder as the EXE.
 
-## 使用
+## How to use
 
-1. 打开工具，自动连接 MSFS；状态点变绿即已连接
-2. **地名**标签：输入中文或英文地点（如"哈尔滨中央大街""Eiffel Tower"），搜索后从候选点选一个
-3. **经纬度**标签：直接填 `纬度,经度`，或分别填纬度 / 经度 / 海拔(米) / 朝向(°)
-4. 点「瞬移至此」，飞机即被传送到目标坐标
+1. Open the tool — it connects to MSFS automatically; the status dot turns green when connected.
+2. **Search** tab: type a place in English or Chinese (e.g. `Eiffel Tower`, `哈尔滨中央大街`), search, then pick a candidate.
+3. **Target** tab: enter `latitude, longitude` directly, or fill latitude / longitude / altitude (m) / heading (°) separately.
+4. Click **Go to Location** — the aircraft is teleported to the target.
 
-### 常用功能
+### Main features
 
-| 功能 | 说明 |
+| Feature | Description |
 | --- | --- |
-| 仅地图 | 收起侧栏，只留地图窗口，适合全屏铺在游戏上方 |
-| 置顶显示 | 窗口始终浮在游戏画面之上 |
-| 跟随飞机 | 地图自动居中到飞机当前位置 |
-| 缩放随高度 | 缩放级别随飞行高度自动调整 |
-| 搜索选点 | 选中候选地点后自动取消「跟随飞机」，保证目标居中 |
+| Map only | Collapse the side panel and keep just the map window — great to overlay on the sim full-screen. |
+| Always on top | The window floats above the simulator. |
+| Follow aircraft | Map auto-centers on the current aircraft position. |
+| Zoom by altitude | Zoom level adjusts automatically with flight altitude. |
+| Search & pick | Selecting a place auto-disables "Follow" so your target stays centered. |
+| North up / Heading up | Toggle map orientation; a compass rotates with it. |
+| Auto-locate on launch | On startup the map centers on the aircraft and matches the chosen orientation. |
 
-## 技术说明
+Keyboard shortcuts: `Ctrl+Alt+T` teleport to armed target · `Ctrl+Alt+E` resume control · `Ctrl+Alt+G` bring this window to front.
 
-- 界面：`pywebview`（Windows 上使用 Edge WebView2）
-- 地景：多源瓦片（高德 / Esri / 腾讯），带本地磁盘缓存
-- 地理编码：OpenStreetMap Nominatim（免费、支持中文、无需 API Key）
-- 瞬移：通过 SimConnect `set_pos` 写入坐标。若游戏处于暂停态，先恢复运行再瞬移才生效
-- 全部本地运行，无数据上传、无付费接口
+## Notes
 
-## 从源码构建
+- The release EXE is **not code-signed**. Windows SmartScreen may show "Windows protected your PC" on first launch — click **More info → Run anyway**.
+- Map tiles: Esri (worldwide) and Amap/Tencent (China), cached on disk. An offline satellite basemap (zoom 0–5) is bundled so the world is never blank at low zoom.
+- Geocoding: a built-in offline gazetteer plus online geocoders (Photon, Nominatim, ArcGIS; Amap for China).
+- In mainland China the app uses GCJ-02 coordinates for Chinese map sources so the aircraft lines up with the imagery.
+
+## Build from source
 
 ```bash
 pip install -r requirements.txt
 pip install pyinstaller
-python build.py                # -> dist/MSFSTeleport.exe
-python build.py --distpath out # 输出到指定目录
+python build.py                 # -> dist/FSRelocator.exe
+python build.py --distpath out  # output to a chosen directory
 ```
 
-开发调试直接运行：`python app.py`
+For development, run `python app.py` directly.
 
-## 自动发布
+## Automated release
 
-本仓库配置了 GitHub Actions（`.github/workflows/release.yml`）：
+This repo uses GitHub Actions (`.github/workflows/release.yml`):
 
-- 推送 `v*` 标签 → 云端 Windows 主机自动打包并发布 Release
-- 也可在仓库网页 **Actions → Build & Release → Run workflow** 手动触发
+- Pushing a `v*` tag builds and publishes the Release on a cloud Windows runner.
+- Or trigger manually: **Actions → Build & Release → Run workflow**.
 
-版本号取自 `strings.py` 中的 `APP_VERSION`，发版时递增即可。
+The version number comes from `APP_VERSION` in `strings.py`; bump it before releasing.
 
-## 许可
+## License
 
 [MIT](LICENSE)

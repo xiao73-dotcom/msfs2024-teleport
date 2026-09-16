@@ -35,13 +35,28 @@ def _get_app_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
-# 让 EXE/脚本所在目录参与 DLL 搜索（python 运行时进程目录是 python.exe，不包含本目录）
+def _bundle_dirs():
+    """PyInstaller 单文件模式下随 EXE 一起解压出来的目录（sys._MEIPASS）。
+
+    build.py 用 `--add-data "<SimConnect.dll>;SimConnect"` 把 DLL 打进包里，
+    运行时落在 <_MEIPASS>/SimConnect/SimConnect.dll。把 EXE 单独复制到别的
+    文件夹也照样能用 —— 玩家不需要自己去找 DLL。
+    """
+    base = getattr(sys, "_MEIPASS", "") or ""
+    if not base:
+        return []
+    return [os.path.join(base, "SimConnect"), base]
+
+
+# 让 EXE/脚本所在目录、以及包内解压目录都参与 DLL 搜索
+# （python 运行时进程目录是 python.exe，不包含这些目录）
 _APP_DIR = _get_app_dir()
-if os.path.isdir(_APP_DIR):
-    try:
-        os.add_dll_directory(_APP_DIR)
-    except (AttributeError, OSError):
-        pass
+for _d in [_APP_DIR] + _bundle_dirs():
+    if _d and os.path.isdir(_d):
+        try:
+            os.add_dll_directory(_d)
+        except (AttributeError, OSError):
+            pass
 
 
 def _common_msfs_roots():
@@ -62,10 +77,17 @@ def _common_msfs_roots():
 
 
 def find_simconnect_dll():
-    """返回找到的 SimConnect.dll 路径；找不到返回 None。"""
+    """返回找到的 SimConnect.dll 路径；找不到返回 None。
+
+    搜索顺序：程序同目录（用户可手动覆盖）→ 包内解压目录（EXE 自带，最可靠）
+    → 当前工作目录 → 系统库搜索 → PATH → 常见 MSFS/SDK 安装路径。
+    """
     logger.debug("find_simconnect_dll: app_dir=%s cwd=%s", _APP_DIR, os.getcwd())
-    # 1. 程序/脚本同目录（用户手动复制到此最优先）
-    for d in (_APP_DIR, os.getcwd()):
+    # 1. 程序/脚本同目录（用户手动放的优先），以及 EXE 包内自带的那份
+    search_dirs = [_APP_DIR] + _bundle_dirs() + [os.getcwd()]
+    for d in search_dirs:
+        if not d:
+            continue
         p = os.path.join(d, "SimConnect.dll")
         logger.debug("  checking %s -> exists=%s", p, os.path.isfile(p))
         if os.path.isfile(p):
@@ -398,28 +420,32 @@ class SimBridge:
 
         dll = find_simconnect_dll()
         if dll is None:
-            logger.error("SimConnect.dll not found; app_dir=%s", _APP_DIR)
+            logger.error("SimConnect.dll not found; app_dir=%s bundle=%s",
+                         _APP_DIR, _bundle_dirs())
             raise RuntimeError(
-                "本机未找到 SimConnect.dll：请把 MSFS SDK 里的 SimConnect.dll 复制到本程序同目录后重试"
+                "未找到 SimConnect.dll（程序自带的副本也没解压出来）。"
+                "请重新下载完整版 EXE；确有必要时再把 MSFS SDK 里的 SimConnect.dll 放到本程序同目录"
             )
 
         # Python-SimConnect 库默认从它自己的包目录加载 SimConnect.dll：
         # _library_path = <SimConnect 包>/SimConnect.dll
-        # PyInstaller 单文件打包时不会自动把这个原生 DLL 塞进包目录，
-        # 因此运行时要把用户提供的 DLL 复制到库能找着的位置。
+        # 单文件打包时该目录位于临时解压区（<_MEIPASS>/SimConnect），build.py 已把
+        # DLL 塞进去；这里再做两件事：能复制进包目录就复制（最贴合库的设计），
+        # 否则直接以绝对路径传给库（库支持 library_path 参数，windll.LoadLibrary 吃绝对路径）。
+        dll_abs = os.path.abspath(dll)
         pkg_dir = os.path.dirname(os.path.abspath(SimConnect.__file__))
         expected_dll = os.path.join(pkg_dir, "SimConnect.dll")
-        if not os.path.isfile(expected_dll):
+        if os.path.isfile(expected_dll):
+            logger.info("SimConnect.dll already in package dir: %s", expected_dll)
+        else:
             try:
                 import shutil
-                shutil.copy2(os.path.abspath(dll), expected_dll)
+                os.makedirs(pkg_dir, exist_ok=True)
+                shutil.copy2(dll_abs, expected_dll)
                 logger.info("copied SimConnect.dll to package dir: %s", expected_dll)
             except Exception as e:  # noqa: BLE001
                 logger.warning("could not copy dll to package dir: %s", e)
-                # 复制失败时显式传入绝对路径让库直接加载
-                expected_dll = os.path.abspath(dll)
-        else:
-            logger.info("SimConnect.dll already in package dir: %s", expected_dll)
+                expected_dll = dll_abs
 
         result = {}
         logger.info("trying SimConnect.SimConnect(library_path=%s) with timeout=%s", expected_dll, timeout)

@@ -15,6 +15,9 @@ dist/
 dist_new/
 *.manifest
 
+# ---------- 发布包（make_web.py 产出：下载页 + zip + exe，体积大且每次重建） ----------
+web/
+
 # ---------- 运行时生成（本地缓存 / 日志 / 用户配置） ----------
 *.log
 tilecache/
@@ -26,10 +29,22 @@ _diag/
 preview_side_panel.png
 _check.js
 
+# ---------- 离线底图（体积大，随本地 EXE 分发；不进仓库） ----------
+# world_z5_sat.zip 由 _tiles_dl.py + _tiles_pack.py 生成（Esri World Imagery z0~z5），
+# 若希望云端 Release 也内置底图，把下面这行注释掉即可（仓库会多 ~8.4MB）。
+tiles_build/
+world_z5_sat.zip
+_tiles_dl.py
+_tiles_pack.py
+_tiles_dl.log
+_pack.log
+_preview.png
+
 # ---------- 本地凭据（绝不入库） ----------
 .gh_token
 *.token
 gh_token.txt
+amap_key.txt
 
 # ---------- 编辑器 / 系统 ----------
 .vscode/
