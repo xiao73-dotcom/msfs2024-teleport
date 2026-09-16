@@ -63,6 +63,15 @@ This repo uses GitHub Actions (`.github/workflows/release.yml`):
 
 The version number comes from `APP_VERSION` in `strings.py`; bump it before releasing.
 
+## Feedback & Support
+
+Found a bug, or have a suggestion? I'd love to hear from you — this tool gets better from real-world use.
+
+- **Open an issue** on this repository (preferred).
+- Or email me at **jerryxiao@msn.com**.
+
+I read every report and fix issues as they come up.
+
 ## License
 
 [MIT](LICENSE)
