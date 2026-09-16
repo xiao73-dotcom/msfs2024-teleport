@@ -50,6 +50,7 @@ INCLUDE = [
     "app_icon.ico",
     "world_110m.json",
     "world_famous.json",
+    "world_z5_sat.zip",
     "SimConnect.dll",
     "README.md",
     "LICENSE",
